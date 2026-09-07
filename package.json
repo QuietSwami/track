@@ -1,0 +1,14 @@
+{
+  "name": "project-time-calendar-addon",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Private Google Calendar sidebar add-on for scheduled project time",
+  "scripts": {
+    "test": "node tests/run-tests.js",
+    "check": "node tests/check-source.js && node tests/run-tests.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
+

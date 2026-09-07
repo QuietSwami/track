@@ -1,0 +1,30 @@
+{
+  "timeZone": "Europe/Zurich",
+  "dependencies": {
+    "enabledAdvancedServices": [
+      {
+        "userSymbol": "Calendar",
+        "serviceId": "calendar",
+        "version": "v3"
+      }
+    ]
+  },
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/calendar.addons.execute",
+    "https://www.googleapis.com/auth/calendar.readonly"
+  ],
+  "addOns": {
+    "common": {
+      "name": "Project Time",
+      "logoUrl": "https://www.gstatic.com/images/icons/material/system/1x/schedule_black_48dp.png"
+    },
+    "calendar": {
+      "homepageTrigger": {
+        "runFunction": "buildCalendarHomepage",
+        "enabled": true
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "scriptId": "PASTE_YOUR_APPS_SCRIPT_PROJECT_ID_HERE",
+  "rootDir": "src",
+  "filePushOrder": [
+    "Utils.gs",
+    "DateRanges.gs",
+    "Aggregation.gs",
+    "Settings.gs",
+    "CalendarAccess.gs",
+    "Cards.gs",
+    "Addon.gs",
+    "appsscript.json"
+  ]
+}
+
