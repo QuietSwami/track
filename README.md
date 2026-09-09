@@ -1,8 +1,10 @@
 # Project Time
 
-Project Time is a private, single-user Google Workspace add-on for Google Calendar. It appears in Calendar's right-hand sidebar and totals scheduled event duration by calendar: one selected calendar equals one project.
+Project Time is an open-source, self-hosted Google Workspace add-on for Google Calendar. It appears in Calendar's right-hand sidebar and totals scheduled event duration by calendar: one selected calendar equals one project.
 
-It uses Google Apps Script, Card Service, the advanced Calendar service, User Properties, and a short-lived User Cache. There is no external server or database, and event content is not sent to any external service.
+Each user installs the source into a Google Apps Script project they own. Project Time uses Card Service, the advanced Calendar service, User Properties, and a short-lived User Cache. There is no shared service, external server, or database, and event content is not sent to any external service.
+
+**Start here:** [Install Project Time from source](INSTALL.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [MIT License](LICENSE)
 
 ## What is included
 
@@ -10,12 +12,14 @@ It uses Google Apps Script, Card Service, the advanced Calendar service, User Pr
 - Weekly and monthly periods, Previous/Next navigation, Today, and Refresh
 - Project totals sorted by scheduled time, using each calendar's name and color
 - Duration, percentage, and counted-event count per project
+- Clickable project rows with period metrics, activity extremes, and a chronological daily breakdown
 - User settings for project calendars, first weekday, weekends, declined events, all-day events, and Free events
 - Recurring occurrence expansion, boundary clipping, midnight and DST-safe arithmetic
 - Independent overlap detection and disclosure
 - Three-minute per-user summary cache; Refresh bypasses it
-- Automatic day/night appearance that follows the active Google Calendar theme
+- Native Card Service appearance without hard-coded neutral text colors
 - Graceful handling of no selection, empty periods, inaccessible calendars, and errors
+- Confirmed in-product deletion of the current user's preferences and tracked cache data
 - Dependency-free local tests for the pure calculation logic
 
 ## Repository layout
@@ -33,97 +37,35 @@ src/
 tests/
   run-tests.js      Calculation/date test harness
   check-source.js   Syntax and manifest checks
+INSTALL.md          Complete self-installation and update guide
+CONTRIBUTING.md     Development and privacy constraints
+SECURITY.md         Private vulnerability-reporting process
+CHANGELOG.md        Release history
 ```
 
 ## Local verification
 
-Node.js 18 or newer is sufficient; there are no package dependencies.
+Node.js 20 or newer is recommended; there are no package dependencies.
 
 ```bash
 npm test
 npm run check
 ```
 
-`npm run check` parses every `.gs` file, validates the important manifest fields and exact OAuth scope set, and runs all calculation tests.
+`npm run check` audits repository files for common credentials and private deployment identifiers, parses every `.gs` file, validates the important manifest fields and exact OAuth scope set, and runs all calculation tests.
 
-## Create the Google projects
+## Installation
 
-### 1. Create the Apps Script project
+Project Time is distributed as source code. Every installer creates a personal standalone Apps Script project, uploads `src/` with `clasp`, installs that project's test deployment, and authorizes it for their own Google account.
 
-1. Sign in with the Google account that will use the add-on.
-2. Open [script.new](https://script.new/) to create a standalone Apps Script project.
-3. Rename it **Project Time**.
-4. Open **Project Settings** and copy the **Script ID**. Do not use the deployment ID.
+See [INSTALL.md](INSTALL.md) for beginner-friendly instructions, a no-`clasp` alternative, updates, uninstalling, requested permissions, and troubleshooting.
 
-Apps Script automatically associates a default Google Cloud project. That is enough for an unpublished personal test deployment. If you want an explicitly managed standard Cloud project, complete the optional next section before deploying.
+The personal deployment requests exactly:
 
-### 2. Optional: associate a standard Google Cloud project
+- `calendar.addons.execute`: run Project Time in the Calendar sidebar.
+- `calendar.readonly`: list accessible calendars and read the minimum event fields required for the statistics.
 
-This is useful for explicit API and OAuth management, and is required later for a versioned/public add-on deployment. It is not required for the private head/test deployment in this README.
-
-1. In the [Google Cloud console](https://console.cloud.google.com/projectcreate), create or select a project named **Project Time**.
-2. In **APIs & Services > Library**, enable **Google Calendar API**.
-3. In **Google Auth platform > Branding**, configure the app name and support/contact email.
-4. In **Audience**, choose **Internal** when your Workspace organization permits it. For a personal Gmail account or cross-domain use, choose **External**, leave the app in Testing, and add your own Google account as a test user.
-5. In **Data Access**, add these two scopes:
-   - `https://www.googleapis.com/auth/calendar.addons.execute`
-   - `https://www.googleapis.com/auth/calendar.readonly`
-6. Copy the Cloud project's numeric **Project number**.
-7. In Apps Script, open **Project Settings > Google Cloud Platform (GCP) Project > Change project**, enter that project number, and confirm.
-
-For a one-user test, do not create a Marketplace listing and do not submit for public OAuth verification.
-
-## Upload with clasp
-
-1. In [Apps Script user settings](https://script.google.com/home/usersettings), enable **Google Apps Script API**. This setting permits `clasp` to manage your scripts.
-2. From this repository, authenticate:
-
-   ```bash
-   npx @google/clasp login
-   ```
-
-3. Copy the provided configuration and replace its placeholder with the Script ID from the Apps Script project:
-
-   ```bash
-   cp .clasp.json.example .clasp.json
-   ```
-
-4. Upload the source:
-
-   ```bash
-   npx @google/clasp push
-   ```
-
-5. Open the remote project and confirm that **Calendar API** appears under Services:
-
-   ```bash
-   npx @google/clasp open-script
-   ```
-
-The manifest already enables the advanced Calendar service as `Calendar` v3. With a default Apps Script Cloud project, adding the advanced service enables its API automatically. With a standard Cloud project, the Google Calendar API must also be enabled in Cloud Console as described above.
-
-If `clasp` is unavailable, create the seven `.gs` files in the Apps Script editor, copy their matching contents from `src/`, show the manifest from **Project Settings**, and replace `appsscript.json` with the repository version.
-
-## OAuth configuration
-
-The manifest requests exactly:
-
-- `calendar.addons.execute`: required to run a Calendar add-on
-- `calendar.readonly`: read calendar-list metadata and events, including calendar colors and recurring occurrences
-
-There are no Calendar write scopes. The code does not create, update, or delete events. After upload, verify the Apps Script **Overview > Project OAuth Scopes** list matches `src/appsscript.json`. If you use a standard Cloud project, ensure the same scopes are present in Google Auth platform **Data Access**.
-
-## Install the private test deployment
-
-1. Open the Apps Script project.
-2. Choose **Deploy > Test deployments**.
-3. Click **Install**, then **Done**.
-4. Open or reload [Google Calendar](https://calendar.google.com/) on desktop.
-5. In the right-hand icon column, click the Project Time clock icon. If the side panel is collapsed, first click the small arrow at the lower-right edge.
-6. Complete Google's authorization flow, granting the two requested Calendar permissions.
-7. On first open, Project Time shows Settings because it never auto-selects calendars. Select the calendars that represent projects, choose the rules, and click **Save settings**.
-
-This installs the Apps Script head deployment only for development/personal use. It tracks the latest pushed code. The project has not been published to the Google Workspace Marketplace.
+There are no Calendar write scopes. The code cannot create, update, or delete events.
 
 ## Calculation behavior
 
@@ -135,31 +77,34 @@ This installs the Apps Script head deployment only for development/personal use.
 - All-day event end dates are exclusive, matching Calendar API semantics. If enabled, their elapsed midnight-to-midnight duration can be 23 or 25 hours across a DST change.
 - Excluding weekends removes Saturday and Sunday portions from totals. Week navigation still advances by seven-day calendar weeks, and the displayed label says `weekends excluded`.
 - Every event contributes independently. Overlapping events therefore remain double-counted, and the sidebar discloses that overlap.
+- The project detail card shows its share of the overall project total, event count, active-day count, average duration per event, busiest day, longest and shortest named activities, and each active day's duration, percentage, and contributing-event count.
+- Longest and shortest activities use the duration actually counted inside the selected period after boundary clipping and exclusion rules. Recurring occurrences are compared individually. If durations tie, the earliest activity is used, then its name. Events whose names are unavailable appear as `Untitled activity`.
 - Percentages use exact millisecond totals and are independently rounded to whole percentages, so displayed percentages can occasionally add to 99% or 101%.
 
-## Day and night themes
+## Theme limitation
 
-Project Time follows Google Calendar's active theme automatically. Card Service renders the sidebar background, ordinary text, section dividers, controls, and buttons using the host application's theme. The manifest intentionally leaves `layoutProperties.primaryColor` and `secondaryColor` unset, and the cards do not hard-code neutral text colors. This lets Calendar switch the add-on between day and night appearances without a separate Project Time setting.
+Google Calendar's Apps Script Card Service currently exposes neither the active Calendar theme nor a card background/theme API. The add-on event object provides host, platform, locale, timezone, form inputs, and parameters, but no light/dark appearance field. Consequently, a Calendar Card Service add-on cannot detect or programmatically mirror Calendar's day/night setting.
 
-The small dot beside each project intentionally retains that project's Calendar color in both themes. Calendar-only dark-mode logo variants are not supported by the common Apps Script add-on manifest, so the toolbar uses the standard public Material clock icon.
+Project Time uses native Card Service controls and avoids hard-coded neutral text colors, which is the safest available presentation. Google still controls the rendered card background. The small dot beside each project retains that project's Calendar color. A true independently styled dark sidebar would require an HTML/iframe interface, which Google Calendar Workspace add-ons do not permit under this project's required Card Service architecture.
 
-## Privacy
+## Privacy and data handling
 
-Project Time reads the accessible calendar list plus start/end times, event status, transparency, the current user's attendee response, and recurrence-instance identifiers for selected calendars. It deliberately does not request event titles, descriptions, locations, or other content in its Calendar API partial-response fields.
+Project Time reads the accessible calendar list plus event names, start/end times, status, transparency, the current user's attendee response, and recurrence-instance identifiers for selected calendars. Event names are used only for the longest and shortest activity statistics. It does not request event descriptions, locations, or other content in its Calendar API partial-response fields.
 
-Preferences and view state are stored per user in Apps Script **User Properties**. Calculated summaries are stored for three minutes in Apps Script **User Cache**. Data remains within Google Apps Script/Google Calendar and is not transmitted to external services. Development logging is limited to calendar IDs, queried boundaries, event counts, and errors; it does not log event titles, descriptions, or attendees.
+Preferences and view state are stored per user in Apps Script **User Properties**. Calculated summaries, including the two displayed activity names per project, are stored for three minutes in Apps Script **User Cache**. Data remains within Google Apps Script/Google Calendar and is not transmitted to external services. Development logging is limited to calendar IDs, queried boundaries, event counts, and errors; it does not log event names, descriptions, or attendees.
+
+Users can delete their Project Time preferences, view state, and tracked cached summaries from **Settings → Delete my data**. The action uses a confirmation card and does not modify Calendar data.
 
 ## What must be tested in Apps Script
 
 The local harness validates calculation inputs and expected expanded occurrences, but it cannot emulate Google's runtime. Verify these after installation:
 
-1. Card rendering and navigation in the Calendar sidebar.
-2. Switch Google Calendar between Light and Dark themes and verify the open sidebar updates with it.
-3. Calendar authorization and User Properties isolation.
-4. Calendar API expansion of a real recurring series, including an edited or cancelled occurrence.
-5. Calendar colors and renamed calendars.
-6. Free/busy-only shared calendars and calendars that are removed after selection.
-7. The account's actual primary-calendar timezone and a real DST-crossing event.
+1. Card rendering and navigation in the Calendar sidebar, including opening a project row, refreshing its detail card, and returning to the summary.
+2. Calendar authorization and User Properties isolation.
+3. Calendar API expansion of a real recurring series, including an edited or cancelled occurrence.
+4. Calendar colors and renamed calendars.
+5. Free/busy-only shared calendars and calendars that are removed after selection.
+6. The account's actual primary-calendar timezone and a real DST-crossing event.
 
 For a manual accuracy test, create dedicated project calendars with known timed events, include one recurring event, one overlap, and one boundary-crossing event, then compare week/month totals with a hand calculation. Refresh after edits to bypass the three-minute cache.
 
@@ -194,6 +139,19 @@ For a manual accuracy test, create dedicated project calendars with known timed 
 - Click **Refresh** after changing events or calendars.
 - If the primary calendar exposes no timezone, change the manifest `timeZone` fallback to the desired IANA timezone and push again.
 
+## Optional Marketplace publication package
+
+Self-installation from source does not require a Marketplace listing, public website, or central OAuth project. If a future maintainer chooses one-click public distribution, Calendar sidebar add-ons are published through Google Workspace Marketplace, not the Chrome Web Store. Draft publication materials are retained in:
+
+- `publication/RELEASE_CHECKLIST.md` — ordered Cloud, OAuth, deployment, listing, and review steps
+- `publication/marketplace-listing.md` — proposed listing copy, scope justifications, screenshot captions, and verification-video script
+- `docs/` — static product, privacy, terms, and support pages suitable for HTTPS static hosting after placeholders are completed
+- `assets/marketplace/` — editable SVG branding plus exact-size 32×32, 128×128, and 220×140 PNG assets
+
+Public publication still requires developer-owned decisions and console actions: choose the permanent audience, supply legal/contact details, host and verify the public pages, associate a dedicated standard Google Cloud project, host the production icon at an approved `lh3.googleusercontent.com` URL, capture a real Calendar screenshot, create a versioned deployment, configure the Marketplace SDK, and complete any required OAuth and Marketplace reviews. Do not submit while `npm run publication:check` reports blockers.
+
+`npm run publication:check` validates those optional Marketplace-specific assets and will intentionally fail until their external requirements are supplied. It is not part of the source-installation CI check.
+
 ## Documentation basis
 
 Manifest and deployment instructions were checked on 7 September 2026 against Google's current documentation:
@@ -206,3 +164,8 @@ Manifest and deployment instructions were checked on 7 September 2026 against Go
 - [Advanced Calendar service](https://developers.google.com/apps-script/advanced/calendar)
 - [Test and debug Apps Script Google Workspace add-ons](https://developers.google.com/workspace/add-ons/how-tos/testing-workspace-addons)
 - [Use the command-line interface with clasp](https://developers.google.com/apps-script/guides/clasp)
+- [Publish an add-on](https://developers.google.com/workspace/add-ons/how-tos/publish-add-on-overview)
+- [Configure the Google Workspace Marketplace SDK](https://developers.google.com/workspace/marketplace/enable-configure-sdk)
+- [Configure OAuth for Marketplace](https://developers.google.com/workspace/marketplace/configure-oauth-consent-screen)
+- [Create a Marketplace store listing](https://developers.google.com/workspace/marketplace/create-listing)
+- [Marketplace app review requirements](https://developers.google.com/workspace/marketplace/about-app-review)

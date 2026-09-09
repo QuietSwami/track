@@ -86,6 +86,10 @@ var ProjectTimeSettings = (function() {
     userProperties().deleteProperty(CACHE_KEYS_KEY);
   }
 
+  function deleteUserData() {
+    userProperties().deleteAllProperties();
+  }
+
   function parseJson(text, fallback) {
     if (!text) return fallback;
     try { return JSON.parse(text); } catch (error) { return fallback; }
@@ -93,6 +97,7 @@ var ProjectTimeSettings = (function() {
 
   return {
     clearTrackedCacheKeys: clearTrackedCacheKeys,
+    deleteUserData: deleteUserData,
     getPreferences: getPreferences,
     getTrackedCacheKeys: getTrackedCacheKeys,
     getView: getView,
@@ -102,4 +107,3 @@ var ProjectTimeSettings = (function() {
     trackCacheKey: trackCacheKey
   };
 })();
-

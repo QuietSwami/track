@@ -10,6 +10,10 @@ var ProjectTimeAggregation = (function() {
     (projects || []).forEach(function(project) {
       var projectMilliseconds = 0;
       var eventCount = 0;
+      var projectSegments = [];
+      var daily = {};
+      var longestActivity = null;
+      var shortestActivity = null;
       (project.events || []).forEach(function(event, index) {
         var normalized = normalizeEvent(event, options, timeZone);
         if (!normalized) return;
@@ -20,15 +24,29 @@ var ProjectTimeAggregation = (function() {
           var clipped = clipInterval(normalized, interval);
           if (!clipped) return;
           eventMilliseconds += clipped.endMs - clipped.startMs;
-          countedSegments.push({
+          var counted = {
             startMs: clipped.startMs,
             endMs: clipped.endMs,
             eventKey: eventKey
-          });
+          };
+          countedSegments.push(counted);
+          projectSegments.push(counted);
+          addSegmentToDays(daily, counted, timeZone);
         });
         if (eventMilliseconds > 0) {
           projectMilliseconds += eventMilliseconds;
           eventCount += 1;
+          var activity = {
+            name: activityName(event),
+            milliseconds: eventMilliseconds,
+            startMs: normalized.startMs
+          };
+          if (isBetterExtreme(activity, longestActivity, true)) {
+            longestActivity = activity;
+          }
+          if (isBetterExtreme(activity, shortestActivity, false)) {
+            shortestActivity = activity;
+          }
         }
       });
       totalMilliseconds += projectMilliseconds;
@@ -37,7 +55,11 @@ var ProjectTimeAggregation = (function() {
         name: project.name,
         color: project.color,
         milliseconds: projectMilliseconds,
-        eventCount: eventCount
+        eventCount: eventCount,
+        hasOverlaps: detectOverlaps(projectSegments),
+        days: finalizeDays(daily, projectMilliseconds),
+        longestActivity: publicActivity(longestActivity),
+        shortestActivity: publicActivity(shortestActivity)
       });
     });
 
@@ -55,6 +77,63 @@ var ProjectTimeAggregation = (function() {
       totalMilliseconds: totalMilliseconds,
       hasOverlaps: detectOverlaps(countedSegments)
     };
+  }
+
+  function activityName(event) {
+    var name = String(event && event.summary || '').trim();
+    return name || 'Untitled activity';
+  }
+
+  function isBetterExtreme(candidate, current, longest) {
+    if (!current) return true;
+    if (candidate.milliseconds !== current.milliseconds) {
+      return longest ? candidate.milliseconds > current.milliseconds :
+        candidate.milliseconds < current.milliseconds;
+    }
+    if (candidate.startMs !== current.startMs) return candidate.startMs < current.startMs;
+    return candidate.name.localeCompare(current.name) < 0;
+  }
+
+  function publicActivity(activity) {
+    return activity ? {
+      name: activity.name,
+      milliseconds: activity.milliseconds
+    } : null;
+  }
+
+  function addSegmentToDays(daily, segment, timeZone) {
+    var cursor = segment.startMs;
+    while (cursor < segment.endMs) {
+      var local = ProjectTimeDateRanges.localDateAt(cursor, timeZone);
+      var date = ProjectTimeDateRanges.formatLocalDate(local);
+      var nextMidnight = ProjectTimeDateRanges.localToUtcMilliseconds(
+          ProjectTimeDateRanges.addDays(local, 1), timeZone);
+      var endMs = Math.min(segment.endMs, nextMidnight);
+      var item = daily[date];
+      if (!item) {
+        item = daily[date] = {
+          date: date,
+          milliseconds: 0,
+          eventKeys: {}
+        };
+      }
+      item.milliseconds += endMs - cursor;
+      item.eventKeys[segment.eventKey] = true;
+      cursor = endMs;
+    }
+  }
+
+  function finalizeDays(daily, projectMilliseconds) {
+    return Object.keys(daily).sort().map(function(date) {
+      var item = daily[date];
+      return {
+        date: date,
+        milliseconds: item.milliseconds,
+        eventCount: Object.keys(item.eventKeys).length,
+        percentage: projectMilliseconds > 0 ?
+          Math.round(item.milliseconds * 100 / projectMilliseconds) : 0
+      };
+    });
   }
 
   function normalizeEvent(event, options, timeZone) {
@@ -115,7 +194,9 @@ var ProjectTimeAggregation = (function() {
   }
 
   return {
+    addSegmentToDays: addSegmentToDays,
     aggregateProjects: aggregateProjects,
+    activityName: activityName,
     clipInterval: clipInterval,
     detectOverlaps: detectOverlaps,
     isDeclined: isDeclined,

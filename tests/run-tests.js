@@ -79,6 +79,12 @@ test('event spanning midnight keeps its elapsed duration', () => {
     timed('1', '2026-09-07T23:00:00+02:00', '2026-09-08T02:00:00+02:00')
   ]}], '2026-09-07T00:00:00+02:00', '2026-09-09T00:00:00+02:00');
   assert.equal(result.totalMilliseconds, 3 * HOUR);
+  assert.deepEqual(Array.from(result.projects[0].days, day => [
+    day.date, day.milliseconds, day.eventCount
+  ]), [
+    ['2026-09-07', HOUR, 1],
+    ['2026-09-08', 2 * HOUR, 1]
+  ]);
 });
 
 test('multiple events on one project calendar are summed', () => {
@@ -146,6 +152,9 @@ test('overlap in the same project is disclosed and counted separately', () => {
   ]}], '2026-09-07T00:00:00Z', '2026-09-08T00:00:00Z');
   assert.equal(result.totalMilliseconds, 4 * HOUR);
   assert.equal(result.hasOverlaps, true);
+  assert.equal(result.projects[0].hasOverlaps, true);
+  assert.equal(result.projects[0].days[0].milliseconds, 4 * HOUR);
+  assert.equal(result.projects[0].days[0].eventCount, 2);
 });
 
 test('overlap across projects is disclosed and counted separately', () => {
@@ -155,6 +164,44 @@ test('overlap across projects is disclosed and counted separately', () => {
   ], '2026-09-07T00:00:00Z', '2026-09-08T00:00:00Z');
   assert.equal(result.totalMilliseconds, 4 * HOUR);
   assert.equal(result.hasOverlaps, true);
+  assert.equal(result.projects[0].hasOverlaps, false);
+  assert.equal(result.projects[1].hasOverlaps, false);
+});
+
+test('daily breakdown percentages use the project total', () => {
+  const result = aggregate([{id: 'a', name: 'A', events: [
+    timed('1', '2026-09-07T09:00:00+02:00', '2026-09-07T10:00:00+02:00'),
+    timed('2', '2026-09-08T09:00:00+02:00', '2026-09-08T12:00:00+02:00')
+  ]}], '2026-09-07T00:00:00+02:00', '2026-09-09T00:00:00+02:00');
+  assert.deepEqual(Array.from(result.projects[0].days, day => day.percentage), [25, 75]);
+});
+
+test('longest and shortest activities include names and use counted duration', () => {
+  const result = aggregate([{id: 'a', name: 'A', events: [
+    timed('1', '2026-09-06T20:00:00Z', '2026-09-07T00:30:00Z', {
+      summary: 'Boundary work'
+    }),
+    timed('2', '2026-09-07T09:00:00Z', '2026-09-07T10:00:00Z', {
+      summary: 'Planning session'
+    }),
+    timed('3', '2026-09-07T11:00:00Z', '2026-09-07T14:00:00Z', {
+      summary: 'Deep work'
+    })
+  ]}], '2026-09-07T00:00:00Z', '2026-09-08T00:00:00Z');
+  assert.deepEqual({...result.projects[0].longestActivity}, {
+    name: 'Deep work', milliseconds: 3 * HOUR
+  });
+  assert.deepEqual({...result.projects[0].shortestActivity}, {
+    name: 'Boundary work', milliseconds: 0.5 * HOUR
+  });
+});
+
+test('an activity without a visible event name gets a helpful fallback', () => {
+  const result = aggregate([{id: 'a', name: 'A', events: [
+    timed('1', '2026-09-07T09:00:00Z', '2026-09-07T10:00:00Z')
+  ]}], '2026-09-07T00:00:00Z', '2026-09-08T00:00:00Z');
+  assert.equal(result.projects[0].longestActivity.name, 'Untitled activity');
+  assert.equal(result.projects[0].shortestActivity.name, 'Untitled activity');
 });
 
 test('empty period returns zero without overlap', () => {
@@ -183,6 +230,8 @@ test('DST spring-forward day is 23 elapsed hours', () => {
     timed('1', '2026-03-29T00:00:00+01:00', '2026-03-29T04:00:00+02:00')
   ]}], intervals, DEFAULTS, TZ);
   assert.equal(result.totalMilliseconds, 3 * HOUR);
+  assert.equal(result.projects[0].days[0].date, '2026-03-29');
+  assert.equal(result.projects[0].days[0].milliseconds, 3 * HOUR);
 });
 
 test('week navigation and Monday week boundaries', () => {

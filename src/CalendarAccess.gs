@@ -3,6 +3,7 @@ var ProjectTimeCalendarAccess = (function() {
   'use strict';
 
   var CACHE_SECONDS = 180;
+  var CACHE_VERSION = 3;
 
   function listAccessibleCalendars() {
     ensureAdvancedService();
@@ -55,7 +56,7 @@ var ProjectTimeCalendarAccess = (function() {
         orderBy: 'startTime',
         maxResults: 2500,
         pageToken: pageToken,
-        fields: 'nextPageToken,items(id,status,start,end,transparency,attendees(self,responseStatus),recurringEventId,originalStartTime)'
+        fields: 'nextPageToken,items(id,summary,status,start,end,transparency,attendees(self,responseStatus),recurringEventId,originalStartTime)'
       });
       Array.prototype.push.apply(events, response.items || []);
       pageToken = response.nextPageToken;
@@ -127,6 +128,7 @@ var ProjectTimeCalendarAccess = (function() {
 
   function createCacheKey(preferences, range, calendars, timeZone) {
     var material = JSON.stringify({
+      version: CACHE_VERSION,
       selected: calendars.map(function(calendar) {
         return [calendar.id, calendar.name, calendar.color];
       }),

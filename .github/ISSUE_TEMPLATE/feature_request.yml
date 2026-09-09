@@ -1,0 +1,27 @@
+name: Feature request
+description: Suggest a focused improvement to Project Time
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What scheduling-analysis problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+    validations:
+      required: true
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Project constraints
+      options:
+        - label: This can remain read-only and does not require modifying Calendar events.
+          required: true
+        - label: This does not require sending Calendar data to an external service.
+          required: true

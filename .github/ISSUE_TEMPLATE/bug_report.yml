@@ -1,0 +1,48 @@
+name: Bug report
+description: Report reproducible incorrect behavior using synthetic data
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include real Calendar content, OAuth tokens, Script IDs, deployment IDs, or other credentials. Report security issues privately as described in SECURITY.md.
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What happened?
+      description: Describe the observed and expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      description: Use synthetic calendar and event data.
+    validations:
+      required: true
+  - type: dropdown
+    id: period
+    attributes:
+      label: Period type
+      options:
+        - Week
+        - Month
+        - Not applicable
+    validations:
+      required: true
+  - type: input
+    id: timezone
+    attributes:
+      label: Reporting timezone
+      placeholder: Europe/Zurich
+  - type: textarea
+    id: settings
+    attributes:
+      label: Relevant settings
+      description: Include first weekday and the weekend, declined, all-day, and Free-event settings when relevant.
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification
+      description: Include the output of `npm run check` and any Apps Script runtime error with private data removed.

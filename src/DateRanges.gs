@@ -178,12 +178,24 @@ var ProjectTimeDateRanges = (function() {
         ' – ' + end.day + ' ' + MONTHS[end.month - 1] + ' ' + end.year;
   }
 
+  function formatDayLabel(value) {
+    var local = typeof value === 'string' ? parseLocalDate(value) : value;
+    var dayNames = [
+      'Sunday', 'Monday', 'Tuesday', 'Wednesday',
+      'Thursday', 'Friday', 'Saturday'
+    ];
+    return dayNames[dayOfWeek(local)] + ', ' + local.day + ' ' +
+        MONTHS[local.month - 1];
+  }
+
   return {
     addDays: addDays,
     addMonths: addMonths,
     buildIncludedIntervals: buildIncludedIntervals,
+    formatDayLabel: formatDayLabel,
     formatLocalDate: formatLocalDate,
     getRange: getRange,
+    localDateAt: localDateAt,
     localToUtcMilliseconds: localToUtcMilliseconds,
     navigate: navigate,
     parseLocalDate: parseLocalDate,
@@ -192,4 +204,3 @@ var ProjectTimeDateRanges = (function() {
     today: today
   };
 })();
-

@@ -55,10 +55,15 @@ var ProjectTimeCards = (function() {
         var metrics = ProjectTimeUtils.formatDuration(project.milliseconds) +
             ' · ' + project.percentage + '% · ' + project.eventCount + ' ' +
             (project.eventCount === 1 ? 'event' : 'events');
-        projectsSection.addWidget(CardService.newTextParagraph().setText(
-            '<font color="' + ProjectTimeUtils.safeColor(project.color) + '">●</font> ' +
-            '<b>' + ProjectTimeUtils.escapeHtml(project.name) + '</b><br>' +
-            metrics));
+        projectsSection.addWidget(CardService.newDecoratedText()
+            .setWrapText(true)
+            .setOnClickAction(action('onOpenProjectDetails', {
+              calendarId: project.id
+            }))
+            .setText(
+                '<font color="' + ProjectTimeUtils.safeColor(project.color) + '">●</font> ' +
+                '<b>' + ProjectTimeUtils.escapeHtml(project.name) + '</b>  ›<br>' +
+                metrics));
       });
       builder.addSection(projectsSection);
     }
@@ -81,6 +86,94 @@ var ProjectTimeCards = (function() {
             .addButton(textButton('Refresh', 'onRefresh'))
             .addButton(textButton('Settings', 'onOpenSettings'))));
     return builder.build();
+  }
+
+  function buildProjectDetailsCard(summary, project) {
+    var builder = baseBuilder('Project details');
+    var average = project.eventCount ?
+      project.milliseconds / project.eventCount : 0;
+    var busiest = findBusiestDay(project.days);
+
+    builder.addSection(CardService.newCardSection()
+        .addWidget(CardService.newTextParagraph().setText(
+            '<font color="' + ProjectTimeUtils.safeColor(project.color) + '">●</font> ' +
+            '<b>' + ProjectTimeUtils.escapeHtml(project.name) + '</b><br>' +
+            ProjectTimeUtils.escapeHtml(summary.range.displayLabel))));
+
+    var overview = CardService.newCardSection().setHeader('Overview')
+        .addWidget(metric('Scheduled',
+            ProjectTimeUtils.formatDuration(project.milliseconds)))
+        .addWidget(metric('Share of all project time', project.percentage + '%'))
+        .addWidget(metric('Counted events', String(project.eventCount)))
+        .addWidget(metric('Active days', String(project.days.length)));
+    if (project.eventCount) {
+      overview.addWidget(metric('Average per event',
+          ProjectTimeUtils.formatDuration(average)));
+    }
+    if (busiest) {
+      overview.addWidget(metric('Busiest day',
+          ProjectTimeDateRanges.formatDayLabel(busiest.date) + ' · ' +
+          ProjectTimeUtils.formatDuration(busiest.milliseconds)));
+    }
+    if (project.hasOverlaps) {
+      overview.addWidget(CardService.newTextParagraph().setText(
+          'This project contains overlapping events. They are counted separately.'));
+    }
+    builder.addSection(overview);
+
+    if (project.longestActivity && project.shortestActivity) {
+      builder.addSection(CardService.newCardSection().setHeader('Activity extremes')
+          .addWidget(activityMetric('Longest activity', project.longestActivity))
+          .addWidget(activityMetric('Shortest activity', project.shortestActivity)));
+    }
+
+    var days = CardService.newCardSection().setHeader('Daily breakdown');
+    if (!project.days.length) {
+      days.addWidget(CardService.newTextParagraph().setText(
+          'No qualifying events were found for this project in this period.'));
+    } else {
+      project.days.forEach(function(day) {
+        var count = day.eventCount + ' ' +
+            (day.eventCount === 1 ? 'event' : 'events');
+        days.addWidget(CardService.newDecoratedText()
+            .setTopLabel(ProjectTimeDateRanges.formatDayLabel(day.date))
+            .setText('<b>' + ProjectTimeUtils.escapeHtml(
+                ProjectTimeUtils.formatDuration(day.milliseconds)) + '</b> · ' +
+                day.percentage + '% · ' + count));
+      });
+    }
+    builder.addSection(days);
+
+    builder.addSection(CardService.newCardSection().addWidget(
+        CardService.newButtonSet()
+            .addButton(textButton('Back', 'onBackFromProjectDetails'))
+            .addButton(textButton('Refresh', 'onRefreshProjectDetails', {
+              calendarId: project.id
+            }))));
+    return builder.build();
+  }
+
+  function metric(label, value) {
+    return CardService.newDecoratedText()
+        .setTopLabel(label)
+        .setText('<b>' + ProjectTimeUtils.escapeHtml(value) + '</b>')
+        .setWrapText(true);
+  }
+
+  function activityMetric(label, activity) {
+    return CardService.newDecoratedText()
+        .setTopLabel(label)
+        .setText('<b>' + ProjectTimeUtils.escapeHtml(activity.name) + '</b>')
+        .setBottomLabel(ProjectTimeUtils.formatDuration(activity.milliseconds))
+        .setWrapText(true);
+  }
+
+  function findBusiestDay(days) {
+    var busiest = null;
+    (days || []).forEach(function(day) {
+      if (!busiest || day.milliseconds > busiest.milliseconds) busiest = day;
+    });
+    return busiest;
   }
 
   function buildSettingsCard(preferences, calendars) {
@@ -130,7 +223,24 @@ var ProjectTimeCards = (function() {
         CardService.newButtonSet()
             .addButton(filledButton('Save settings', 'onSaveSettings'))
             .addButton(textButton('Back', 'onBackToSummary'))));
+    builder.addSection(CardService.newCardSection().setHeader('Privacy & data')
+        .addWidget(CardService.newTextParagraph().setText(
+            'Remove your saved calendar selections, preferences, view state, and cached summaries. Calendar events are never changed.'))
+        .addWidget(textButton('Delete my data', 'onOpenDeleteData')));
     return builder.build();
+  }
+
+  function buildDeleteDataCard() {
+    return baseBuilder('Delete my data')
+        .addSection(CardService.newCardSection()
+            .addWidget(CardService.newTextParagraph().setText(
+                '<b>Delete all Project Time data saved for your account?</b>'))
+            .addWidget(CardService.newTextParagraph().setText(
+                'This removes calendar selections, counting preferences, view state, and tracked cached summaries. It does not modify or delete any Calendar events.'))
+            .addWidget(CardService.newButtonSet()
+                .addButton(filledButton('Delete my data', 'onDeleteUserData'))
+                .addButton(textButton('Cancel', 'onCancelDeleteData'))))
+        .build();
   }
 
   function buildErrorCard(error) {
@@ -152,17 +262,19 @@ var ProjectTimeCards = (function() {
         .build();
   }
 
-  function baseBuilder(subtitle) {
+  function baseBuilder(title) {
     return CardService.newCardBuilder().setHeader(
-        CardService.newCardHeader().setTitle('Project Time').setSubtitle(subtitle));
+        CardService.newCardHeader().setTitle(title));
   }
 
-  function action(functionName) {
-    return CardService.newAction().setFunctionName(functionName);
+  function action(functionName, parameters) {
+    var result = CardService.newAction().setFunctionName(functionName);
+    return parameters ? result.setParameters(parameters) : result;
   }
 
-  function textButton(label, functionName) {
-    return CardService.newTextButton().setText(label).setOnClickAction(action(functionName));
+  function textButton(label, functionName, parameters) {
+    return CardService.newTextButton().setText(label)
+        .setOnClickAction(action(functionName, parameters));
   }
 
   function filledButton(label, functionName) {
@@ -171,8 +283,10 @@ var ProjectTimeCards = (function() {
   }
 
   return {
+    buildDeleteDataCard: buildDeleteDataCard,
     buildErrorCard: buildErrorCard,
     buildMainCard: buildMainCard,
+    buildProjectDetailsCard: buildProjectDetailsCard,
     buildSettingsCard: buildSettingsCard
   };
 })();

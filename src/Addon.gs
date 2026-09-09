@@ -29,6 +29,55 @@ function onOpenSettings(e) {
   }
 }
 
+function onOpenProjectDetails(e) {
+  return renderProjectDetails(e, false, true);
+}
+
+function onRefreshProjectDetails(e) {
+  return renderProjectDetails(e, true, false);
+}
+
+function renderProjectDetails(e, bypassCache, pushCard) {
+  try {
+    var calendarId = ProjectTimeUtils.actionParameter(e, 'calendarId', '');
+    var preferences = ProjectTimeSettings.getPreferences();
+    if (preferences.selectedCalendarIds.indexOf(calendarId) === -1) {
+      throw new Error('That calendar is not selected as a project.');
+    }
+    var calendars = ProjectTimeCalendarAccess.listAccessibleCalendars();
+    var timeZone = ProjectTimeCalendarAccess.getReportingTimeZone(calendars);
+    var view = ProjectTimeSettings.getView(timeZone);
+    var summary = ProjectTimeCalendarAccess.getSummary(
+        preferences, view, bypassCache, {calendars: calendars, timeZone: timeZone});
+    var project = findProject(summary.projects, calendarId);
+    if (!project) {
+      throw new Error('This project calendar is no longer accessible.');
+    }
+    var card = ProjectTimeCards.buildProjectDetailsCard(summary, project);
+    var navigation = CardService.newNavigation();
+    if (pushCard) navigation.pushCard(card);
+    else navigation.updateCard(card);
+    return navigationResponse(navigation);
+  } catch (error) {
+    var errorCard = ProjectTimeCards.buildErrorCard(error);
+    var errorNavigation = CardService.newNavigation();
+    if (pushCard) errorNavigation.pushCard(errorCard);
+    else errorNavigation.updateCard(errorCard);
+    return navigationResponse(errorNavigation);
+  }
+}
+
+function onBackFromProjectDetails(e) {
+  return navigationResponse(CardService.newNavigation().popCard());
+}
+
+function findProject(projects, calendarId) {
+  for (var i = 0; i < projects.length; i += 1) {
+    if (projects[i].id === calendarId) return projects[i];
+  }
+  return null;
+}
+
 function onSaveSettings(e) {
   try {
     var preferences = preferencesFromForm(e);
@@ -53,6 +102,29 @@ function onSelectAllCalendars(e) {
 
 function onClearAllCalendars(e) {
   return rebuildSettingsWithSelection(e, 'none');
+}
+
+function onOpenDeleteData(e) {
+  return navigationResponse(CardService.newNavigation().pushCard(
+      ProjectTimeCards.buildDeleteDataCard()));
+}
+
+function onCancelDeleteData(e) {
+  return navigationResponse(CardService.newNavigation().popCard());
+}
+
+function onDeleteUserData(e) {
+  try {
+    ProjectTimeCalendarAccess.clearCachedSummaries();
+    ProjectTimeSettings.deleteUserData();
+    var card = ProjectTimeCards.buildSettingsCard(
+        ProjectTimeSettings.getPreferences(),
+        ProjectTimeCalendarAccess.listAccessibleCalendars());
+    return navigationResponse(CardService.newNavigation().popToRoot().updateCard(card));
+  } catch (error) {
+    return navigationResponse(CardService.newNavigation().updateCard(
+        ProjectTimeCards.buildErrorCard(error)));
+  }
 }
 
 function rebuildSettingsWithSelection(e, mode) {

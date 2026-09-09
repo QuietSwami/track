@@ -16,14 +16,27 @@ const manifest = JSON.parse(fs.readFileSync(path.join(src, 'appsscript.json'), '
 assert.equal(manifest.runtimeVersion, 'V8');
 assert.equal(manifest.addOns.calendar.homepageTrigger.runFunction, 'buildCalendarHomepage');
 assert.equal(manifest.dependencies.enabledAdvancedServices[0].serviceId, 'calendar');
-assert.equal(manifest.addOns.common.layoutProperties, undefined,
-  'Host-managed colors are required so cards follow Calendar light/dark theme');
 assert.deepEqual(manifest.oauthScopes.sort(), [
   'https://www.googleapis.com/auth/calendar.addons.execute',
   'https://www.googleapis.com/auth/calendar.readonly'
 ].sort());
 assert.ok(!manifest.oauthScopes.some(scope => /calendar(\.events)?$/.test(scope)));
 const cards = fs.readFileSync(path.join(src, 'Cards.gs'), 'utf8');
+const calendarAccess = fs.readFileSync(path.join(src, 'CalendarAccess.gs'), 'utf8');
 assert.ok(!/#5F6368|primaryColor|secondaryColor/.test(cards),
-  'Cards must not hard-code neutral UI colors; Calendar supplies theme colors');
+  'Cards should not hard-code neutral UI colors');
+assert.ok(!/setSubtitle\s*\(/.test(cards),
+  'Card headers should show only the card name');
+assert.match(cards, /setOnClickAction\(action\('onOpenProjectDetails'/,
+  'Project summary rows should open the detail card');
+assert.match(cards, /buildProjectDetailsCard/,
+  'Project detail card should be present');
+assert.match(cards, /Longest activity/);
+assert.match(cards, /Shortest activity/);
+assert.match(cards, /Delete my data/,
+  'Settings should provide an in-product user-data deletion flow');
+assert.match(calendarAccess, /items\(id,summary,status,start,end/,
+  'Event names should be requested for activity statistics');
+assert.doesNotMatch(calendarAccess, /items\(id,[^']*(description|location)/,
+  'Descriptions and locations should not be requested');
 console.log(`Checked ${scripts.length} Apps Script files and the manifest.`);

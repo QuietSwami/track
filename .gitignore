@@ -2,4 +2,10 @@
 .clasprc.json
 node_modules/
 .DS_Store
-
+*.log
+.env
+.env.*
+!.env.example
+coverage/
+assets/marketplace/screenshots/*.png
+!assets/marketplace/screenshots/README.md

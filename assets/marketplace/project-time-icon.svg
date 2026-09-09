@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">Project Time</title>
+  <defs>
+    <linearGradient id="background" x1="16" y1="8" x2="112" y2="120" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2F6FEB"/>
+      <stop offset="1" stop-color="#1746B0"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#background)"/>
+  <rect x="25" y="29" width="78" height="75" rx="12" fill="#FFFFFF"/>
+  <path d="M25 48h78" stroke="#C8D7FA" stroke-width="8"/>
+  <path d="M43 23v18M85 23v18" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="68" cy="76" r="22" fill="#1746B0"/>
+  <path d="M68 62v15l11 7" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="68" cy="76" r="3" fill="#72E0B5"/>
+</svg>

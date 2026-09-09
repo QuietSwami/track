@@ -50,6 +50,12 @@ var ProjectTimeUtils = (function() {
     return formValues(event, fieldName).indexOf(expected) !== -1;
   }
 
+  function actionParameter(event, name, fallback) {
+    var common = event && event.commonEventObject;
+    var parameters = common && common.parameters || event && event.parameters || {};
+    return parameters[name] == null ? fallback : String(parameters[name]);
+  }
+
   function stableHash(text) {
     var hash = 2166136261;
     for (var i = 0; i < text.length; i += 1) {
@@ -65,6 +71,7 @@ var ProjectTimeUtils = (function() {
   }
 
   return {
+    actionParameter: actionParameter,
     clampInteger: clampInteger,
     escapeHtml: escapeHtml,
     firstFormValue: firstFormValue,
@@ -75,4 +82,3 @@ var ProjectTimeUtils = (function() {
     stableHash: stableHash
   };
 })();
-
