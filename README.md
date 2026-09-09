@@ -139,19 +139,6 @@ For a manual accuracy test, create dedicated project calendars with known timed 
 - Click **Refresh** after changing events or calendars.
 - If the primary calendar exposes no timezone, change the manifest `timeZone` fallback to the desired IANA timezone and push again.
 
-## Optional Marketplace publication package
-
-Self-installation from source does not require a Marketplace listing, public website, or central OAuth project. If a future maintainer chooses one-click public distribution, Calendar sidebar add-ons are published through Google Workspace Marketplace, not the Chrome Web Store. Draft publication materials are retained in:
-
-- `publication/RELEASE_CHECKLIST.md` — ordered Cloud, OAuth, deployment, listing, and review steps
-- `publication/marketplace-listing.md` — proposed listing copy, scope justifications, screenshot captions, and verification-video script
-- `docs/` — static product, privacy, terms, and support pages suitable for HTTPS static hosting after placeholders are completed
-- `assets/marketplace/` — editable SVG branding plus exact-size 32×32, 128×128, and 220×140 PNG assets
-
-Public publication still requires developer-owned decisions and console actions: choose the permanent audience, supply legal/contact details, host and verify the public pages, associate a dedicated standard Google Cloud project, host the production icon at an approved `lh3.googleusercontent.com` URL, capture a real Calendar screenshot, create a versioned deployment, configure the Marketplace SDK, and complete any required OAuth and Marketplace reviews. Do not submit while `npm run publication:check` reports blockers.
-
-`npm run publication:check` validates those optional Marketplace-specific assets and will intentionally fail until their external requirements are supplied. It is not part of the source-installation CI check.
-
 ## Documentation basis
 
 Manifest and deployment instructions were checked on 7 September 2026 against Google's current documentation:
@@ -164,8 +151,3 @@ Manifest and deployment instructions were checked on 7 September 2026 against Go
 - [Advanced Calendar service](https://developers.google.com/apps-script/advanced/calendar)
 - [Test and debug Apps Script Google Workspace add-ons](https://developers.google.com/workspace/add-ons/how-tos/testing-workspace-addons)
 - [Use the command-line interface with clasp](https://developers.google.com/apps-script/guides/clasp)
-- [Publish an add-on](https://developers.google.com/workspace/add-ons/how-tos/publish-add-on-overview)
-- [Configure the Google Workspace Marketplace SDK](https://developers.google.com/workspace/marketplace/enable-configure-sdk)
-- [Configure OAuth for Marketplace](https://developers.google.com/workspace/marketplace/configure-oauth-consent-screen)
-- [Create a Marketplace store listing](https://developers.google.com/workspace/marketplace/create-listing)
-- [Marketplace app review requirements](https://developers.google.com/workspace/marketplace/about-app-review)

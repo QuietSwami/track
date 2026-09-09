@@ -27,7 +27,9 @@ for (const relative of files) {
   assert.ok(!forbiddenNames.has(base), `${relative} must not be committed`);
   if (/\.(png|jpg|jpeg|gif|webp|ico)$/i.test(relative)) continue;
   const absolute = path.join(root, relative);
-  if (!fs.statSync(absolute).isFile() || fs.statSync(absolute).size > 1024 * 1024) continue;
+  if (!fs.existsSync(absolute)) continue;
+  const stats = fs.statSync(absolute);
+  if (!stats.isFile() || stats.size > 1024 * 1024) continue;
   const content = fs.readFileSync(absolute, 'utf8');
   for (const pattern of forbiddenPatterns) {
     assert.ok(!pattern.expression.test(content), `${pattern.name} detected in ${relative}`);

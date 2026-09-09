@@ -7,5 +7,3 @@ node_modules/
 .env.*
 !.env.example
 coverage/
-assets/marketplace/screenshots/*.png
-!assets/marketplace/screenshots/README.md
