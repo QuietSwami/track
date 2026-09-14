@@ -1,5 +1,5 @@
 /** Pure date-range calculations with IANA timezone support. */
-var ProjectTimeDateRanges = (function() {
+var TrackDateRanges = (function() {
   'use strict';
 
   var MONTHS = [

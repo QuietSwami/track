@@ -1,8 +1,8 @@
 {
-  "name": "project-time-calendar-addon",
-  "version": "1.0.0",
+  "name": "track-google-calendar-time-tracker",
+  "version": "1.1.0",
   "private": true,
-  "description": "Self-hosted Google Calendar sidebar add-on for scheduled project time by project calendar",
+  "description": "Track! - a self-hosted time tracker for Google Calendar project calendars",
   "license": "MIT",
   "scripts": {
     "test": "node tests/run-tests.js",

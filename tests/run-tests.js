@@ -11,8 +11,8 @@ for (const file of ['Utils.gs', 'DateRanges.gs', 'Aggregation.gs']) {
   vm.runInContext(source, context, {filename: file});
 }
 
-const Dates = context.ProjectTimeDateRanges;
-const Aggregate = context.ProjectTimeAggregation;
+const Dates = context.TrackDateRanges;
+const Aggregate = context.TrackAggregation;
 
 const HOUR = 60 * 60 * 1000;
 const TZ = 'Europe/Zurich';

@@ -17,7 +17,7 @@
   ],
   "addOns": {
     "common": {
-      "name": "Project Time",
+      "name": "Track! - Time Tracker for Google Calendar",
       "logoUrl": "https://www.gstatic.com/images/icons/material/system/1x/schedule_black_48dp.png"
     },
     "calendar": {

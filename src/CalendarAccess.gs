@@ -1,5 +1,5 @@
 /** Calendar API access and short-lived summary caching. */
-var ProjectTimeCalendarAccess = (function() {
+var TrackCalendarAccess = (function() {
   'use strict';
 
   var CACHE_SECONDS = 180;
@@ -23,7 +23,7 @@ var ProjectTimeCalendarAccess = (function() {
           calendars.push({
             id: item.id,
             name: item.summary || item.id,
-            color: ProjectTimeUtils.safeColor(item.backgroundColor),
+            color: TrackUtils.safeColor(item.backgroundColor),
             accessRole: item.accessRole,
             primary: item.primary === true,
             timeZone: item.timeZone || null
@@ -69,7 +69,7 @@ var ProjectTimeCalendarAccess = (function() {
         listAccessibleCalendars();
     var timeZone = calendarContext && calendarContext.timeZone ||
         getReportingTimeZone(calendars);
-    var range = ProjectTimeDateRanges.getRange(
+    var range = TrackDateRanges.getRange(
         view.periodType, view.anchorDate, preferences, timeZone);
     var byId = {};
     calendars.forEach(function(calendar) { byId[calendar.id] = calendar; });
@@ -93,7 +93,7 @@ var ProjectTimeCalendarAccess = (function() {
     selected.forEach(function(calendar) {
       try {
         var events = fetchCalendarEvents(calendar.id, range, timeZone);
-        console.log('Project Time fetched calendar %s for %s..%s: %s events',
+        console.log('Track! fetched calendar %s for %s..%s: %s events',
             calendar.id, new Date(range.startMs).toISOString(),
             new Date(range.endMs).toISOString(), events.length);
         projects.push({
@@ -103,13 +103,13 @@ var ProjectTimeCalendarAccess = (function() {
           events: events
         });
       } catch (error) {
-        console.error('Project Time could not read calendar %s: %s',
+        console.error('Track! could not read calendar %s: %s',
             calendar.id, String(error));
         failedCalendars.push(calendar.name);
       }
     });
 
-    var aggregate = ProjectTimeAggregation.aggregateProjects(
+    var aggregate = TrackAggregation.aggregateProjects(
         projects, range.includedIntervals, preferences, timeZone);
     var result = {
       range: range,
@@ -122,7 +122,7 @@ var ProjectTimeCalendarAccess = (function() {
       failedCalendars: failedCalendars
     };
     cache.put(cacheKey, JSON.stringify(result), CACHE_SECONDS);
-    ProjectTimeSettings.trackCacheKey(cacheKey);
+    TrackSettings.trackCacheKey(cacheKey);
     return result;
   }
 
@@ -138,13 +138,13 @@ var ProjectTimeCalendarAccess = (function() {
       intervals: range.includedIntervals,
       timeZone: timeZone
     });
-    return 'pt.summary.' + ProjectTimeUtils.stableHash(material);
+    return 'pt.summary.' + TrackUtils.stableHash(material);
   }
 
   function clearCachedSummaries() {
-    var keys = ProjectTimeSettings.getTrackedCacheKeys();
+    var keys = TrackSettings.getTrackedCacheKeys();
     if (keys.length) CacheService.getUserCache().removeAll(keys);
-    ProjectTimeSettings.clearTrackedCacheKeys();
+    TrackSettings.clearTrackedCacheKeys();
   }
 
   function ensureAdvancedService() {

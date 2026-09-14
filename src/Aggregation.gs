@@ -1,5 +1,5 @@
 /** Pure filtering, clipping, aggregation, and overlap detection. */
-var ProjectTimeAggregation = (function() {
+var TrackAggregation = (function() {
   'use strict';
 
   function aggregateProjects(projects, includedIntervals, options, timeZone) {
@@ -104,10 +104,10 @@ var ProjectTimeAggregation = (function() {
   function addSegmentToDays(daily, segment, timeZone) {
     var cursor = segment.startMs;
     while (cursor < segment.endMs) {
-      var local = ProjectTimeDateRanges.localDateAt(cursor, timeZone);
-      var date = ProjectTimeDateRanges.formatLocalDate(local);
-      var nextMidnight = ProjectTimeDateRanges.localToUtcMilliseconds(
-          ProjectTimeDateRanges.addDays(local, 1), timeZone);
+      var local = TrackDateRanges.localDateAt(cursor, timeZone);
+      var date = TrackDateRanges.formatLocalDate(local);
+      var nextMidnight = TrackDateRanges.localToUtcMilliseconds(
+          TrackDateRanges.addDays(local, 1), timeZone);
       var endMs = Math.min(segment.endMs, nextMidnight);
       var item = daily[date];
       if (!item) {
@@ -158,8 +158,8 @@ var ProjectTimeAggregation = (function() {
 
   function parseAllDayDate(value, timeZone) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return NaN;
-    return ProjectTimeDateRanges.localToUtcMilliseconds(
-        ProjectTimeDateRanges.parseLocalDate(value), timeZone);
+    return TrackDateRanges.localToUtcMilliseconds(
+        TrackDateRanges.parseLocalDate(value), timeZone);
   }
 
   function isDeclined(event) {

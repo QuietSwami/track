@@ -1,7 +1,8 @@
 /** User-scoped preferences and lightweight sidebar navigation state. */
-var ProjectTimeSettings = (function() {
+var TrackSettings = (function() {
   'use strict';
 
+  // Preserve the original keys so existing installations keep their settings after the rename.
   var SETTINGS_KEY = 'projectTime.settings.v1';
   var VIEW_KEY = 'projectTime.view.v1';
   var CACHE_KEYS_KEY = 'projectTime.cacheKeys.v1';
@@ -40,7 +41,7 @@ var ProjectTimeSettings = (function() {
     return {
       initialized: value.initialized === true,
       selectedCalendarIds: ids,
-      firstDayOfWeek: ProjectTimeUtils.clampInteger(
+      firstDayOfWeek: TrackUtils.clampInteger(
           value.firstDayOfWeek, 0, 6, DEFAULTS.firstDayOfWeek),
       includeWeekends: value.includeWeekends == null ?
         DEFAULTS.includeWeekends : value.includeWeekends === true,
@@ -55,9 +56,9 @@ var ProjectTimeSettings = (function() {
     var periodType = stored.periodType === 'month' ? 'month' : 'week';
     var anchorDate = stored.anchorDate;
     try {
-      ProjectTimeDateRanges.parseLocalDate(anchorDate);
+      TrackDateRanges.parseLocalDate(anchorDate);
     } catch (error) {
-      anchorDate = ProjectTimeDateRanges.today(timeZone);
+      anchorDate = TrackDateRanges.today(timeZone);
     }
     return {periodType: periodType, anchorDate: anchorDate};
   }
@@ -67,7 +68,7 @@ var ProjectTimeSettings = (function() {
       periodType: view.periodType === 'month' ? 'month' : 'week',
       anchorDate: view.anchorDate
     };
-    ProjectTimeDateRanges.parseLocalDate(normalized.anchorDate);
+    TrackDateRanges.parseLocalDate(normalized.anchorDate);
     userProperties().setProperty(VIEW_KEY, JSON.stringify(normalized));
     return normalized;
   }

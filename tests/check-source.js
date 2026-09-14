@@ -14,6 +14,7 @@ for (const name of scripts) {
 
 const manifest = JSON.parse(fs.readFileSync(path.join(src, 'appsscript.json'), 'utf8'));
 assert.equal(manifest.runtimeVersion, 'V8');
+assert.equal(manifest.addOns.common.name, 'Track! - Time Tracker for Google Calendar');
 assert.equal(manifest.addOns.calendar.homepageTrigger.runFunction, 'buildCalendarHomepage');
 assert.equal(manifest.dependencies.enabledAdvancedServices[0].serviceId, 'calendar');
 assert.deepEqual(manifest.oauthScopes.sort(), [

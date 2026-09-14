@@ -1,11 +1,11 @@
 /** Card Service construction for the summary, settings, and errors. */
-var ProjectTimeCards = (function() {
+var TrackCards = (function() {
   'use strict';
 
   var DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   function buildMainCard(preferences, view, bypassCache, calendarContext) {
-    var summary = ProjectTimeCalendarAccess.getSummary(
+    var summary = TrackCalendarAccess.getSummary(
         preferences, view, bypassCache, calendarContext);
     var builder = baseBuilder('Scheduled project time');
 
@@ -27,13 +27,13 @@ var ProjectTimeCards = (function() {
         .addWidget(navigationButtons)
         .addWidget(CardService.newTextParagraph().setText(
             '<b>' + (view.periodType === 'month' ? 'Month' : 'Week') +
-            '</b> · ' + ProjectTimeUtils.escapeHtml(summary.range.displayLabel))));
+            '</b> · ' + TrackUtils.escapeHtml(summary.range.displayLabel))));
 
     var totalSection = CardService.newCardSection()
         .setHeader('Total')
         .addWidget(CardService.newTextParagraph().setText(
             '<b>' +
-            ProjectTimeUtils.escapeHtml(ProjectTimeUtils.formatDuration(
+            TrackUtils.escapeHtml(TrackUtils.formatDuration(
                 summary.totalMilliseconds)) + '</b>'));
 
     if (!preferences.selectedCalendarIds.length) {
@@ -52,7 +52,7 @@ var ProjectTimeCards = (function() {
     if (summary.projects.length) {
       var projectsSection = CardService.newCardSection().setHeader('Projects');
       summary.projects.forEach(function(project) {
-        var metrics = ProjectTimeUtils.formatDuration(project.milliseconds) +
+        var metrics = TrackUtils.formatDuration(project.milliseconds) +
             ' · ' + project.percentage + '% · ' + project.eventCount + ' ' +
             (project.eventCount === 1 ? 'event' : 'events');
         projectsSection.addWidget(CardService.newDecoratedText()
@@ -61,8 +61,8 @@ var ProjectTimeCards = (function() {
               calendarId: project.id
             }))
             .setText(
-                '<font color="' + ProjectTimeUtils.safeColor(project.color) + '">●</font> ' +
-                '<b>' + ProjectTimeUtils.escapeHtml(project.name) + '</b>  ›<br>' +
+                '<font color="' + TrackUtils.safeColor(project.color) + '">●</font> ' +
+                '<b>' + TrackUtils.escapeHtml(project.name) + '</b>  ›<br>' +
                 metrics));
       });
       builder.addSection(projectsSection);
@@ -75,7 +75,7 @@ var ProjectTimeCards = (function() {
       }
       if (summary.failedCalendars.length) {
         messages.push('Could not read: ' + summary.failedCalendars.map(
-            ProjectTimeUtils.escapeHtml).join(', ') + '.');
+            TrackUtils.escapeHtml).join(', ') + '.');
       }
       builder.addSection(CardService.newCardSection().setHeader('Attention')
           .addWidget(CardService.newTextParagraph().setText(messages.join('<br>'))));
@@ -96,24 +96,24 @@ var ProjectTimeCards = (function() {
 
     builder.addSection(CardService.newCardSection()
         .addWidget(CardService.newTextParagraph().setText(
-            '<font color="' + ProjectTimeUtils.safeColor(project.color) + '">●</font> ' +
-            '<b>' + ProjectTimeUtils.escapeHtml(project.name) + '</b><br>' +
-            ProjectTimeUtils.escapeHtml(summary.range.displayLabel))));
+            '<font color="' + TrackUtils.safeColor(project.color) + '">●</font> ' +
+            '<b>' + TrackUtils.escapeHtml(project.name) + '</b><br>' +
+            TrackUtils.escapeHtml(summary.range.displayLabel))));
 
     var overview = CardService.newCardSection().setHeader('Overview')
         .addWidget(metric('Scheduled',
-            ProjectTimeUtils.formatDuration(project.milliseconds)))
+            TrackUtils.formatDuration(project.milliseconds)))
         .addWidget(metric('Share of all project time', project.percentage + '%'))
         .addWidget(metric('Counted events', String(project.eventCount)))
         .addWidget(metric('Active days', String(project.days.length)));
     if (project.eventCount) {
       overview.addWidget(metric('Average per event',
-          ProjectTimeUtils.formatDuration(average)));
+          TrackUtils.formatDuration(average)));
     }
     if (busiest) {
       overview.addWidget(metric('Busiest day',
-          ProjectTimeDateRanges.formatDayLabel(busiest.date) + ' · ' +
-          ProjectTimeUtils.formatDuration(busiest.milliseconds)));
+          TrackDateRanges.formatDayLabel(busiest.date) + ' · ' +
+          TrackUtils.formatDuration(busiest.milliseconds)));
     }
     if (project.hasOverlaps) {
       overview.addWidget(CardService.newTextParagraph().setText(
@@ -136,9 +136,9 @@ var ProjectTimeCards = (function() {
         var count = day.eventCount + ' ' +
             (day.eventCount === 1 ? 'event' : 'events');
         days.addWidget(CardService.newDecoratedText()
-            .setTopLabel(ProjectTimeDateRanges.formatDayLabel(day.date))
-            .setText('<b>' + ProjectTimeUtils.escapeHtml(
-                ProjectTimeUtils.formatDuration(day.milliseconds)) + '</b> · ' +
+            .setTopLabel(TrackDateRanges.formatDayLabel(day.date))
+            .setText('<b>' + TrackUtils.escapeHtml(
+                TrackUtils.formatDuration(day.milliseconds)) + '</b> · ' +
                 day.percentage + '% · ' + count));
       });
     }
@@ -156,15 +156,15 @@ var ProjectTimeCards = (function() {
   function metric(label, value) {
     return CardService.newDecoratedText()
         .setTopLabel(label)
-        .setText('<b>' + ProjectTimeUtils.escapeHtml(value) + '</b>')
+        .setText('<b>' + TrackUtils.escapeHtml(value) + '</b>')
         .setWrapText(true);
   }
 
   function activityMetric(label, activity) {
     return CardService.newDecoratedText()
         .setTopLabel(label)
-        .setText('<b>' + ProjectTimeUtils.escapeHtml(activity.name) + '</b>')
-        .setBottomLabel(ProjectTimeUtils.formatDuration(activity.milliseconds))
+        .setText('<b>' + TrackUtils.escapeHtml(activity.name) + '</b>')
+        .setBottomLabel(TrackUtils.formatDuration(activity.milliseconds))
         .setWrapText(true);
   }
 
@@ -234,7 +234,7 @@ var ProjectTimeCards = (function() {
     return baseBuilder('Delete my data')
         .addSection(CardService.newCardSection()
             .addWidget(CardService.newTextParagraph().setText(
-                '<b>Delete all Project Time data saved for your account?</b>'))
+                '<b>Delete all Track! data saved for your account?</b>'))
             .addWidget(CardService.newTextParagraph().setText(
                 'This removes calendar selections, counting preferences, view state, and tracked cached summaries. It does not modify or delete any Calendar events.'))
             .addWidget(CardService.newButtonSet()
@@ -244,18 +244,18 @@ var ProjectTimeCards = (function() {
   }
 
   function buildErrorCard(error) {
-    console.error('Project Time error: %s', error && error.stack ? error.stack : String(error));
+    console.error('Track! error: %s', error && error.stack ? error.stack : String(error));
     var message = String(error && error.message ? error.message : error);
     var authorization = /authoriz|permission|scope|access denied|login/i.test(message);
     var help = authorization ?
       'Calendar access is not authorized. Reopen the add-on and grant its read-only Calendar permission. If the problem continues, reinstall the test deployment.' :
-      'Project Time could not load Calendar data. Verify the Calendar API is enabled, then try again.';
+      'Track! could not load Calendar data. Verify the Calendar API is enabled, then try again.';
     return baseBuilder('Something went wrong')
         .addSection(CardService.newCardSection()
             .addWidget(CardService.newTextParagraph().setText(
-                ProjectTimeUtils.escapeHtml(help)))
+                TrackUtils.escapeHtml(help)))
             .addWidget(CardService.newTextParagraph().setText(
-                ProjectTimeUtils.escapeHtml(message)))
+                TrackUtils.escapeHtml(message)))
             .addWidget(CardService.newButtonSet()
                 .addButton(textButton('Try again', 'onRefresh'))
                 .addButton(textButton('Settings', 'onOpenSettings'))))

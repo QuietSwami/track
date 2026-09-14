@@ -1,6 +1,6 @@
-# Install Project Time from source
+# Install Track! - Time Tracker for Google Calendar from source
 
-Project Time is self-hosted in your own Google Apps Script project. There is no central service, shared database, or one-click Marketplace installation. You can inspect the source before granting it access to your Calendar.
+Track! - Time Tracker for Google Calendar is self-hosted in your own Google Apps Script project. There is no central service, shared database, or one-click Marketplace installation. You can inspect the source before granting it access to your Calendar.
 
 ## Requirements
 
@@ -22,9 +22,9 @@ The project has no runtime npm dependencies. The command validates the Apps Scri
 
 ### 2. Create your personal Apps Script project
 
-1. Sign in to the Google account that will use Project Time.
+1. Sign in to the Google account that will use Track!.
 2. Open [script.new](https://script.new/) and create a standalone Apps Script project.
-3. Rename it **Project Time**.
+3. Rename it **Track! - Time Tracker for Google Calendar**.
 4. Open **Project Settings** and copy the **Script ID**. This is not a deployment ID.
 5. Open [Apps Script user settings](https://script.google.com/home/usersettings) and enable the **Google Apps Script API**.
 
@@ -67,7 +67,7 @@ In the Apps Script editor, confirm **Calendar API** appears under **Services**. 
 1. In the Apps Script editor, choose **Deploy → Test deployments**.
 2. Select **Install**, then **Done**.
 3. Open or reload [Google Calendar](https://calendar.google.com/) on desktop.
-4. Expand Calendar's right-hand sidebar and select the Project Time clock icon.
+4. Expand Calendar's right-hand sidebar and select the Track! clock icon.
 5. Complete Google's authorization flow.
 6. On first use, choose the calendars that represent projects and save Settings.
 
@@ -75,7 +75,7 @@ Google may describe the project as unverified because this is your personal sour
 
 ## Requested permissions
 
-Project Time requests exactly:
+Track! requests exactly:
 
 - `calendar.addons.execute` so it can run in Google Calendar's sidebar.
 - `calendar.readonly` so it can list accessible calendars and read the minimum event data required for scheduled-time statistics.
@@ -95,7 +95,7 @@ Reload Google Calendar afterward. Test deployments follow the current Apps Scrip
 
 ## Uninstalling
 
-1. Optionally open **Project Time → Settings → Delete my data**.
+1. Optionally open **Track! → Settings → Delete my data**.
 2. In Apps Script, choose **Deploy → Test deployments**.
 3. Select **Uninstall**, then **Done**.
 4. Delete the personal Apps Script project from Google Drive if you no longer need it.
@@ -110,8 +110,8 @@ Reload Google Calendar afterward. Test deployments follow the current Apps Scrip
 
 ## Troubleshooting
 
-- **Project Time icon is missing:** confirm the test deployment is installed for the same account, reload Calendar, and expand the right sidebar.
+- **Track! icon is missing:** confirm the test deployment is installed for the same account, reload Calendar, and expand the right sidebar.
 - **Authorization fails:** confirm Calendar API is listed under Services. Uninstall and reinstall the test deployment if the consent state is stale.
-- **A calendar is missing:** verify the signed-in account can access it, then reopen Project Time Settings.
-- **Totals differ:** check the reporting timezone and Project Time's weekend, declined, all-day, and Free-event settings. Overlapping events are intentionally counted independently.
-- **Changes are not visible:** run `clasp push --force`, click Refresh in Project Time, and reload Calendar.
+- **A calendar is missing:** verify the signed-in account can access it, then reopen Track! Settings.
+- **Totals differ:** check the reporting timezone and Track!'s weekend, declined, all-day, and Free-event settings. Overlapping events are intentionally counted independently.
+- **Changes are not visible:** run `clasp push --force`, click Refresh in Track!, and reload Calendar.

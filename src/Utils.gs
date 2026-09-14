@@ -1,5 +1,5 @@
 /** Shared formatting and event-object helpers. */
-var ProjectTimeUtils = (function() {
+var TrackUtils = (function() {
   'use strict';
 
   function escapeHtml(value) {

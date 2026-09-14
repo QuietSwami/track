@@ -2,30 +2,30 @@
 
 function buildCalendarHomepage(e) {
   try {
-    var preferences = ProjectTimeSettings.getPreferences();
-    var calendars = ProjectTimeCalendarAccess.listAccessibleCalendars();
+    var preferences = TrackSettings.getPreferences();
+    var calendars = TrackCalendarAccess.listAccessibleCalendars();
     if (!preferences.initialized) {
-      return ProjectTimeCards.buildSettingsCard(preferences, calendars);
+      return TrackCards.buildSettingsCard(preferences, calendars);
     }
-    var timeZone = ProjectTimeCalendarAccess.getReportingTimeZone(calendars);
-    var view = ProjectTimeSettings.getView(timeZone);
-    return ProjectTimeCards.buildMainCard(preferences, view, false, {
+    var timeZone = TrackCalendarAccess.getReportingTimeZone(calendars);
+    var view = TrackSettings.getView(timeZone);
+    return TrackCards.buildMainCard(preferences, view, false, {
       calendars: calendars, timeZone: timeZone
     });
   } catch (error) {
-    return ProjectTimeCards.buildErrorCard(error);
+    return TrackCards.buildErrorCard(error);
   }
 }
 
 function onOpenSettings(e) {
   try {
-    var card = ProjectTimeCards.buildSettingsCard(
-        ProjectTimeSettings.getPreferences(),
-        ProjectTimeCalendarAccess.listAccessibleCalendars());
+    var card = TrackCards.buildSettingsCard(
+        TrackSettings.getPreferences(),
+        TrackCalendarAccess.listAccessibleCalendars());
     return navigationResponse(CardService.newNavigation().pushCard(card));
   } catch (error) {
     return navigationResponse(CardService.newNavigation().pushCard(
-        ProjectTimeCards.buildErrorCard(error)));
+        TrackCards.buildErrorCard(error)));
   }
 }
 
@@ -39,27 +39,27 @@ function onRefreshProjectDetails(e) {
 
 function renderProjectDetails(e, bypassCache, pushCard) {
   try {
-    var calendarId = ProjectTimeUtils.actionParameter(e, 'calendarId', '');
-    var preferences = ProjectTimeSettings.getPreferences();
+    var calendarId = TrackUtils.actionParameter(e, 'calendarId', '');
+    var preferences = TrackSettings.getPreferences();
     if (preferences.selectedCalendarIds.indexOf(calendarId) === -1) {
       throw new Error('That calendar is not selected as a project.');
     }
-    var calendars = ProjectTimeCalendarAccess.listAccessibleCalendars();
-    var timeZone = ProjectTimeCalendarAccess.getReportingTimeZone(calendars);
-    var view = ProjectTimeSettings.getView(timeZone);
-    var summary = ProjectTimeCalendarAccess.getSummary(
+    var calendars = TrackCalendarAccess.listAccessibleCalendars();
+    var timeZone = TrackCalendarAccess.getReportingTimeZone(calendars);
+    var view = TrackSettings.getView(timeZone);
+    var summary = TrackCalendarAccess.getSummary(
         preferences, view, bypassCache, {calendars: calendars, timeZone: timeZone});
     var project = findProject(summary.projects, calendarId);
     if (!project) {
       throw new Error('This project calendar is no longer accessible.');
     }
-    var card = ProjectTimeCards.buildProjectDetailsCard(summary, project);
+    var card = TrackCards.buildProjectDetailsCard(summary, project);
     var navigation = CardService.newNavigation();
     if (pushCard) navigation.pushCard(card);
     else navigation.updateCard(card);
     return navigationResponse(navigation);
   } catch (error) {
-    var errorCard = ProjectTimeCards.buildErrorCard(error);
+    var errorCard = TrackCards.buildErrorCard(error);
     var errorNavigation = CardService.newNavigation();
     if (pushCard) errorNavigation.pushCard(errorCard);
     else errorNavigation.updateCard(errorCard);
@@ -81,18 +81,18 @@ function findProject(projects, calendarId) {
 function onSaveSettings(e) {
   try {
     var preferences = preferencesFromForm(e);
-    ProjectTimeSettings.savePreferences(preferences);
-    ProjectTimeCalendarAccess.clearCachedSummaries();
-    var calendars = ProjectTimeCalendarAccess.listAccessibleCalendars();
-    var timeZone = ProjectTimeCalendarAccess.getReportingTimeZone(calendars);
-    var view = ProjectTimeSettings.getView(timeZone);
-    var card = ProjectTimeCards.buildMainCard(preferences, view, true, {
+    TrackSettings.savePreferences(preferences);
+    TrackCalendarAccess.clearCachedSummaries();
+    var calendars = TrackCalendarAccess.listAccessibleCalendars();
+    var timeZone = TrackCalendarAccess.getReportingTimeZone(calendars);
+    var view = TrackSettings.getView(timeZone);
+    var card = TrackCards.buildMainCard(preferences, view, true, {
       calendars: calendars, timeZone: timeZone
     });
     return navigationResponse(CardService.newNavigation().popToRoot().updateCard(card));
   } catch (error) {
     return navigationResponse(CardService.newNavigation().updateCard(
-        ProjectTimeCards.buildErrorCard(error)));
+        TrackCards.buildErrorCard(error)));
   }
 }
 
@@ -106,7 +106,7 @@ function onClearAllCalendars(e) {
 
 function onOpenDeleteData(e) {
   return navigationResponse(CardService.newNavigation().pushCard(
-      ProjectTimeCards.buildDeleteDataCard()));
+      TrackCards.buildDeleteDataCard()));
 }
 
 function onCancelDeleteData(e) {
@@ -115,52 +115,52 @@ function onCancelDeleteData(e) {
 
 function onDeleteUserData(e) {
   try {
-    ProjectTimeCalendarAccess.clearCachedSummaries();
-    ProjectTimeSettings.deleteUserData();
-    var card = ProjectTimeCards.buildSettingsCard(
-        ProjectTimeSettings.getPreferences(),
-        ProjectTimeCalendarAccess.listAccessibleCalendars());
+    TrackCalendarAccess.clearCachedSummaries();
+    TrackSettings.deleteUserData();
+    var card = TrackCards.buildSettingsCard(
+        TrackSettings.getPreferences(),
+        TrackCalendarAccess.listAccessibleCalendars());
     return navigationResponse(CardService.newNavigation().popToRoot().updateCard(card));
   } catch (error) {
     return navigationResponse(CardService.newNavigation().updateCard(
-        ProjectTimeCards.buildErrorCard(error)));
+        TrackCards.buildErrorCard(error)));
   }
 }
 
 function rebuildSettingsWithSelection(e, mode) {
   try {
-    var calendars = ProjectTimeCalendarAccess.listAccessibleCalendars();
+    var calendars = TrackCalendarAccess.listAccessibleCalendars();
     var preferences = preferencesFromForm(e);
     preferences.selectedCalendarIds = mode === 'all' ? calendars.map(function(calendar) {
       return calendar.id;
     }) : [];
     return navigationResponse(CardService.newNavigation().updateCard(
-        ProjectTimeCards.buildSettingsCard(preferences, calendars)));
+        TrackCards.buildSettingsCard(preferences, calendars)));
   } catch (error) {
     return navigationResponse(CardService.newNavigation().updateCard(
-        ProjectTimeCards.buildErrorCard(error)));
+        TrackCards.buildErrorCard(error)));
   }
 }
 
 function onBackToSummary(e) {
   try {
-    var preferences = ProjectTimeSettings.getPreferences();
-    var calendars = ProjectTimeCalendarAccess.listAccessibleCalendars();
-    var timeZone = ProjectTimeCalendarAccess.getReportingTimeZone(calendars);
-    var view = ProjectTimeSettings.getView(timeZone);
+    var preferences = TrackSettings.getPreferences();
+    var calendars = TrackCalendarAccess.listAccessibleCalendars();
+    var timeZone = TrackCalendarAccess.getReportingTimeZone(calendars);
+    var view = TrackSettings.getView(timeZone);
     return navigationResponse(CardService.newNavigation().popToRoot().updateCard(
-        ProjectTimeCards.buildMainCard(preferences, view, false, {
+        TrackCards.buildMainCard(preferences, view, false, {
           calendars: calendars, timeZone: timeZone
         })));
   } catch (error) {
     return navigationResponse(CardService.newNavigation().updateCard(
-        ProjectTimeCards.buildErrorCard(error)));
+        TrackCards.buildErrorCard(error)));
   }
 }
 
 function onPeriodChanged(e) {
   return updateViewAndRender(function(view) {
-    view.periodType = ProjectTimeUtils.firstFormValue(e, 'periodType', 'week') ===
+    view.periodType = TrackUtils.firstFormValue(e, 'periodType', 'week') ===
         'month' ? 'month' : 'week';
     return view;
   }, false);
@@ -176,7 +176,7 @@ function onNextPeriod(e) {
 
 function navigatePeriod(direction) {
   return updateViewAndRender(function(view) {
-    view.anchorDate = ProjectTimeDateRanges.navigate(
+    view.anchorDate = TrackDateRanges.navigate(
         view.periodType, view.anchorDate, direction);
     return view;
   }, false);
@@ -184,7 +184,7 @@ function navigatePeriod(direction) {
 
 function onToday(e) {
   return updateViewAndRender(function(view, timeZone) {
-    view.anchorDate = ProjectTimeDateRanges.today(timeZone);
+    view.anchorDate = TrackDateRanges.today(timeZone);
     return view;
   }, false);
 }
@@ -195,28 +195,28 @@ function onRefresh(e) {
 
 function updateViewAndRender(mutator, bypassCache) {
   try {
-    var preferences = ProjectTimeSettings.getPreferences();
-    var calendars = ProjectTimeCalendarAccess.listAccessibleCalendars();
-    var timeZone = ProjectTimeCalendarAccess.getReportingTimeZone(calendars);
-    var view = ProjectTimeSettings.getView(timeZone);
+    var preferences = TrackSettings.getPreferences();
+    var calendars = TrackCalendarAccess.listAccessibleCalendars();
+    var timeZone = TrackCalendarAccess.getReportingTimeZone(calendars);
+    var view = TrackSettings.getView(timeZone);
     view = mutator(view, timeZone);
-    ProjectTimeSettings.saveView(view);
-    var card = ProjectTimeCards.buildMainCard(preferences, view, bypassCache, {
+    TrackSettings.saveView(view);
+    var card = TrackCards.buildMainCard(preferences, view, bypassCache, {
       calendars: calendars, timeZone: timeZone
     });
     return navigationResponse(CardService.newNavigation().updateCard(card));
   } catch (error) {
     return navigationResponse(CardService.newNavigation().updateCard(
-        ProjectTimeCards.buildErrorCard(error)));
+        TrackCards.buildErrorCard(error)));
   }
 }
 
 function preferencesFromForm(e) {
-  var rules = ProjectTimeUtils.formValues(e, 'rules');
-  return ProjectTimeSettings.normalizePreferences({
+  var rules = TrackUtils.formValues(e, 'rules');
+  return TrackSettings.normalizePreferences({
     initialized: true,
-    selectedCalendarIds: ProjectTimeUtils.formValues(e, 'calendarIds'),
-    firstDayOfWeek: ProjectTimeUtils.firstFormValue(e, 'firstDayOfWeek', '1'),
+    selectedCalendarIds: TrackUtils.formValues(e, 'calendarIds'),
+    firstDayOfWeek: TrackUtils.firstFormValue(e, 'firstDayOfWeek', '1'),
     includeWeekends: rules.indexOf('includeWeekends') !== -1,
     countDeclined: rules.indexOf('countDeclined') !== -1,
     countAllDay: rules.indexOf('countAllDay') !== -1,

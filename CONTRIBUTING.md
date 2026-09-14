@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for improving Project Time.
+Thanks for improving Track! - Time Tracker for Google Calendar.
 
 ## Development workflow
 

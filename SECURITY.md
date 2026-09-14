@@ -12,4 +12,4 @@ Security fixes target the latest version on the default branch. Because each use
 
 ## Security model
 
-Project Time runs in each user's own Google Apps Script project, requests read-only Calendar access, stores preferences in user-scoped Apps Script properties, and uses a short-lived user cache. It has no external application server, database, advertising, or analytics.
+Track! runs in each user's own Google Apps Script project, requests read-only Calendar access, stores preferences in user-scoped Apps Script properties, and uses a short-lived user cache. It has no external application server, database, advertising, or analytics.
