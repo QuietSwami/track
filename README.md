@@ -2,25 +2,10 @@
 
 Track! - Time Tracker for Google Calendar is an open-source, self-hosted Google Workspace add-on. It appears in Calendar's right-hand sidebar and totals scheduled event duration by calendar: one selected calendar equals one project.
 
-Each user installs the source into a Google Apps Script project they own. Track! uses Card Service, the advanced Calendar service, User Properties, and a short-lived User Cache. There is no shared service, external server, or database, and event content is not sent to any external service.
+*NOTE:* For the time being, each user must isntall the source into a Google Apps Script project on their own. There's no shared service, external server, or database. 
 
 **Start here:** [Install Track! from source](INSTALL.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [MIT License](LICENSE)
 
-## What is included
-
-- Calendar-only sidebar with a Calendar-specific homepage trigger
-- Weekly and monthly periods, Previous/Next navigation, Today, and Refresh
-- Project totals sorted by scheduled time, using each calendar's name and color
-- Duration, percentage, and counted-event count per project
-- Clickable project rows with period metrics, activity extremes, and a chronological daily breakdown
-- User settings for project calendars, first weekday, weekends, declined events, all-day events, and Free events
-- Recurring occurrence expansion, boundary clipping, midnight and DST-safe arithmetic
-- Independent overlap detection and disclosure
-- Three-minute per-user summary cache; Refresh bypasses it
-- Native Card Service appearance without hard-coded neutral text colors
-- Graceful handling of no selection, empty periods, inaccessible calendars, and errors
-- Confirmed in-product deletion of the current user's preferences and tracked cache data
-- Dependency-free local tests for the pure calculation logic
 
 ## Repository layout
 
@@ -58,34 +43,13 @@ npm run check
 
 Track! is distributed as source code. Every installer creates a personal standalone Apps Script project, uploads `src/` with `clasp`, installs that project's test deployment, and authorizes it for their own Google account.
 
-See [INSTALL.md](INSTALL.md) for beginner-friendly instructions, a no-`clasp` alternative, updates, uninstalling, requested permissions, and troubleshooting.
+See [INSTALL.md](INSTALL.md) for instructions, a no-`clasp` alternative, updates, uninstalling, requested permissions, and troubleshooting.
 
 The personal deployment requests exactly:
 
 - `calendar.addons.execute`: run Track! in the Calendar sidebar.
 - `calendar.readonly`: list accessible calendars and read the minimum event fields required for the statistics.
 
-There are no Calendar write scopes. The code cannot create, update, or delete events.
-
-## Calculation behavior
-
-- The reporting timezone is the primary calendar's timezone. The manifest timezone (`Europe/Zurich`) is only a fallback when the primary calendar does not expose one.
-- Calendar API `events.list` is called only for selected calendars and only for the period envelope. `singleEvents: true` expands recurring series into occurrences; `showDeleted: false` omits cancelled events.
-- Events are clipped to the included range before duration is added. Arithmetic remains in milliseconds; only display formatting rounds the final total to whole minutes.
-- Declined means an attendee entry marked `self: true` has `responseStatus: declined`.
-- Free means Calendar API `transparency: transparent`.
-- All-day event end dates are exclusive, matching Calendar API semantics. If enabled, their elapsed midnight-to-midnight duration can be 23 or 25 hours across a DST change.
-- Excluding weekends removes Saturday and Sunday portions from totals. Week navigation still advances by seven-day calendar weeks, and the displayed label says `weekends excluded`.
-- Every event contributes independently. Overlapping events therefore remain double-counted, and the sidebar discloses that overlap.
-- The project detail card shows its share of the overall project total, event count, active-day count, average duration per event, busiest day, longest and shortest named activities, and each active day's duration, percentage, and contributing-event count.
-- Longest and shortest activities use the duration actually counted inside the selected period after boundary clipping and exclusion rules. Recurring occurrences are compared individually. If durations tie, the earliest activity is used, then its name. Events whose names are unavailable appear as `Untitled activity`.
-- Percentages use exact millisecond totals and are independently rounded to whole percentages, so displayed percentages can occasionally add to 99% or 101%.
-
-## Theme limitation
-
-Google Calendar's Apps Script Card Service currently exposes neither the active Calendar theme nor a card background/theme API. The add-on event object provides host, platform, locale, timezone, form inputs, and parameters, but no light/dark appearance field. Consequently, a Calendar Card Service add-on cannot detect or programmatically mirror Calendar's day/night setting.
-
-Track! uses native Card Service controls and avoids hard-coded neutral text colors, which is the safest available presentation. Google still controls the rendered card background. The small dot beside each project retains that project's Calendar color. A true independently styled dark sidebar would require an HTML/iframe interface, which Google Calendar Workspace add-ons do not permit under this project's required Card Service architecture.
 
 ## Privacy and data handling
 
@@ -94,19 +58,6 @@ Track! reads the accessible calendar list plus event names, start/end times, sta
 Preferences and view state are stored per user in Apps Script **User Properties**. Calculated summaries, including the two displayed activity names per project, are stored for three minutes in Apps Script **User Cache**. Data remains within Google Apps Script/Google Calendar and is not transmitted to external services. Development logging is limited to calendar IDs, queried boundaries, event counts, and errors; it does not log event names, descriptions, or attendees.
 
 Users can delete their Track! preferences, view state, and tracked cached summaries from **Settings → Delete my data**. The action uses a confirmation card and does not modify Calendar data.
-
-## What must be tested in Apps Script
-
-The local harness validates calculation inputs and expected expanded occurrences, but it cannot emulate Google's runtime. Verify these after installation:
-
-1. Card rendering and navigation in the Calendar sidebar, including opening a project row, refreshing its detail card, and returning to the summary.
-2. Calendar authorization and User Properties isolation.
-3. Calendar API expansion of a real recurring series, including an edited or cancelled occurrence.
-4. Calendar colors and renamed calendars.
-5. Free/busy-only shared calendars and calendars that are removed after selection.
-6. The account's actual primary-calendar timezone and a real DST-crossing event.
-
-For a manual accuracy test, create dedicated project calendars with known timed events, include one recurring event, one overlap, and one boundary-crossing event, then compare week/month totals with a hand calculation. Refresh after edits to bypass the three-minute cache.
 
 ## Troubleshooting
 
@@ -138,16 +89,3 @@ For a manual accuracy test, create dedicated project calendars with known timed 
 - Check for the overlap disclosure. Track! intentionally sums overlapping events separately.
 - Click **Refresh** after changing events or calendars.
 - If the primary calendar exposes no timezone, change the manifest `timeZone` fallback to the desired IANA timezone and push again.
-
-## Documentation basis
-
-Manifest and deployment instructions were checked on 7 September 2026 against Google's current documentation:
-
-- [Build Google Calendar interfaces](https://developers.google.com/workspace/add-ons/calendar/building-calendar-interfaces)
-- [Calendar add-on manifest reference](https://developers.google.com/apps-script/manifest/calendar-addons)
-- [Google Workspace add-on manifest reference](https://developers.google.com/apps-script/manifest/addons)
-- [Calendar API events.list](https://developers.google.com/workspace/calendar/api/v3/reference/events/list)
-- [Advanced Google services](https://developers.google.com/apps-script/guides/services/advanced)
-- [Advanced Calendar service](https://developers.google.com/apps-script/advanced/calendar)
-- [Test and debug Apps Script Google Workspace add-ons](https://developers.google.com/workspace/add-ons/how-tos/testing-workspace-addons)
-- [Use the command-line interface with clasp](https://developers.google.com/apps-script/guides/clasp)
