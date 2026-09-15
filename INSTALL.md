@@ -1,6 +1,6 @@
 # Install Track! - Time Tracker for Google Calendar from source
 
-Track! - Time Tracker for Google Calendar is self-hosted in your own Google Apps Script project. There is no central service, shared database, or one-click Marketplace installation. You can inspect the source before granting it access to your Calendar.
+Track! adds up scheduled time from the project calendars you choose. It does not run a timer or automatically observe your work. The add-on is self-hosted in your own Google Apps Script project, with no central service, shared database, or one-click Marketplace installation. You can inspect the source before granting it access to your Calendar.
 
 ## Requirements
 
@@ -78,7 +78,7 @@ Google may describe the project as unverified because this is your personal sour
 Track! requests exactly:
 
 - `calendar.addons.execute` so it can run in Google Calendar's sidebar.
-- `calendar.readonly` so it can list accessible calendars and read the minimum event data required for scheduled-time statistics.
+- `calendar.readonly` so it can list accessible calendars and read the minimum event data required for scheduled-time summaries.
 
 It has no Calendar write scope and cannot create, edit, or delete events. See [Privacy and data handling](README.md#privacy-and-data-handling) for the fields it reads.
 

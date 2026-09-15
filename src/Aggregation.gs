@@ -81,7 +81,7 @@ var TrackAggregation = (function() {
 
   function activityName(event) {
     var name = String(event && event.summary || '').trim();
-    return name || 'Untitled activity';
+    return name || 'Untitled event';
   }
 
   function isBetterExtreme(candidate, current, longest) {

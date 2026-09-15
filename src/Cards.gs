@@ -23,6 +23,8 @@ var TrackCards = (function() {
         .addButton(textButton('Next', 'onNextPeriod'));
 
     builder.addSection(CardService.newCardSection()
+        .addWidget(CardService.newTextParagraph().setText(
+            'Your calendar, added up. Track! shows time you&#39;ve scheduled—not time automatically tracked.'))
         .addWidget(period)
         .addWidget(navigationButtons)
         .addWidget(CardService.newTextParagraph().setText(
@@ -30,7 +32,7 @@ var TrackCards = (function() {
             '</b> · ' + TrackUtils.escapeHtml(summary.range.displayLabel))));
 
     var totalSection = CardService.newCardSection()
-        .setHeader('Total')
+        .setHeader('Scheduled time')
         .addWidget(CardService.newTextParagraph().setText(
             '<b>' +
             TrackUtils.escapeHtml(TrackUtils.formatDuration(
@@ -41,16 +43,16 @@ var TrackCards = (function() {
           'No project calendars are selected. Open Settings to choose them.'));
     } else if (summary.totalMilliseconds === 0) {
       totalSection.addWidget(CardService.newTextParagraph().setText(
-          'No qualifying events were found in this period.'));
+          'Nothing scheduled here yet.'));
     }
     if (summary.hasOverlaps) {
       totalSection.addWidget(CardService.newTextParagraph().setText(
-          'Overlapping events are counted separately.'));
+          'Heads-up: overlapping events are added separately.'));
     }
     builder.addSection(totalSection);
 
     if (summary.projects.length) {
-      var projectsSection = CardService.newCardSection().setHeader('Projects');
+      var projectsSection = CardService.newCardSection().setHeader('Where the time goes');
       summary.projects.forEach(function(project) {
         var metrics = TrackUtils.formatDuration(project.milliseconds) +
             ' · ' + project.percentage + '% · ' + project.eventCount + ' ' +
@@ -94,22 +96,24 @@ var TrackCards = (function() {
     var unit = insights.unitLabel;
     builder.addSection(CardService.newCardSection()
         .addWidget(CardService.newTextParagraph().setText(
+            'A quick look at your scheduled time compared with the previous ' +
+            unit + '.<br><br>' +
             '<b>Selected ' + unit + '</b> · ' +
             TrackUtils.escapeHtml(insights.currentRange.displayLabel) + '<br>' +
             'Compared with ' +
             TrackUtils.escapeHtml(insights.previousRange.displayLabel))));
 
-    var snapshot = CardService.newCardSection().setHeader('At a glance')
+    var snapshot = CardService.newCardSection().setHeader('Quick look')
         .addWidget(metric('Scheduled',
             TrackUtils.formatDuration(insights.currentTotalMilliseconds)))
-        .addWidget(metric('Change vs previous ' + unit,
+        .addWidget(metric('Scheduled vs last ' + unit,
             formatChange(insights.totalChange)))
-        .addWidget(metric('Activity', insights.eventCount + ' ' +
+        .addWidget(metric('Calendar blocks', insights.eventCount + ' ' +
             (insights.eventCount === 1 ? 'event' : 'events') + ' · ' +
             insights.activeProjectCount + ' active ' +
             (insights.activeProjectCount === 1 ? 'project' : 'projects')));
     if (insights.eventCount) {
-      snapshot.addWidget(metric('Average scheduled block',
+      snapshot.addWidget(metric('Average block',
           TrackUtils.formatDuration(insights.averageEventMilliseconds)));
     }
     builder.addSection(snapshot);
@@ -120,7 +124,7 @@ var TrackCards = (function() {
           'No project calendars are selected. Open Settings to choose them.'));
     } else if (!insights.projects.length) {
       mix.addWidget(CardService.newTextParagraph().setText(
-          'No qualifying events were found in this or the previous ' + unit + '.'));
+          'Nothing scheduled in this or the previous ' + unit + '.'));
     } else {
       insights.projects.forEach(function(project) {
         mix.addWidget(CardService.newDecoratedText()
@@ -136,7 +140,7 @@ var TrackCards = (function() {
                     TrackUtils.formatDuration(project.currentMilliseconds)) +
                 ' · ' + project.percentage + '%<br>' +
                 '<i>' + TrackUtils.escapeHtml(formatChange(project.change)) +
-                ' vs previous ' + unit + '</i>'));
+                ' vs last ' + unit + '</i>'));
       });
     }
     builder.addSection(mix);
@@ -156,12 +160,12 @@ var TrackCards = (function() {
             TrackUtils.formatDuration(insights.busiestDay.milliseconds)));
       }
       if (insights.biggestIncrease) {
-        highlights.addWidget(metric('Largest increase',
+        highlights.addWidget(metric('More time scheduled',
             insights.biggestIncrease.name + ' · ' +
             formatSignedDuration(insights.biggestIncrease.deltaMilliseconds)));
       }
       if (insights.biggestDecrease) {
-        highlights.addWidget(metric('Largest decrease',
+        highlights.addWidget(metric('Less time scheduled',
             insights.biggestDecrease.name + ' · ' +
             formatSignedDuration(insights.biggestDecrease.deltaMilliseconds)));
       }
@@ -170,7 +174,9 @@ var TrackCards = (function() {
 
     if (insights.hasOverlaps || insights.comparisonIncomplete) {
       var notes = [];
-      if (insights.hasOverlaps) notes.push('Overlapping events are counted separately.');
+      if (insights.hasOverlaps) {
+        notes.push('Heads-up: overlapping events are added separately.');
+      }
       if (insights.comparisonIncomplete) {
         notes.push('The comparison may be incomplete because one or more calendars could not be read.');
       }
@@ -198,7 +204,7 @@ var TrackCards = (function() {
 
   function formatChange(change) {
     if (!change || change.kind === 'same') return 'No change';
-    if (change.kind === 'new') return 'New activity';
+    if (change.kind === 'new') return 'Newly scheduled';
     var result = formatSignedDuration(change.deltaMilliseconds);
     if (change.percent != null) {
       result += ' (' + (change.percent > 0 ? '+' : '−') +
@@ -225,14 +231,14 @@ var TrackCards = (function() {
             '<b>' + TrackUtils.escapeHtml(project.name) + '</b><br>' +
             TrackUtils.escapeHtml(summary.range.displayLabel))));
 
-    var overview = CardService.newCardSection().setHeader('Overview')
+    var overview = CardService.newCardSection().setHeader('Quick look')
         .addWidget(metric('Scheduled',
             TrackUtils.formatDuration(project.milliseconds)))
-        .addWidget(metric('Share of all project time', project.percentage + '%'))
-        .addWidget(metric('Counted events', String(project.eventCount)))
+        .addWidget(metric('Share of scheduled time', project.percentage + '%'))
+        .addWidget(metric('Calendar blocks', String(project.eventCount)))
         .addWidget(metric('Active days', String(project.days.length)));
     if (project.eventCount) {
-      overview.addWidget(metric('Average per event',
+      overview.addWidget(metric('Average block',
           TrackUtils.formatDuration(average)));
     }
     if (busiest) {
@@ -242,20 +248,20 @@ var TrackCards = (function() {
     }
     if (project.hasOverlaps) {
       overview.addWidget(CardService.newTextParagraph().setText(
-          'This project contains overlapping events. They are counted separately.'));
+          'Heads-up: this project has overlapping events. They are added separately.'));
     }
     builder.addSection(overview);
 
     if (project.longestActivity && project.shortestActivity) {
-      builder.addSection(CardService.newCardSection().setHeader('Activity extremes')
-          .addWidget(activityMetric('Longest activity', project.longestActivity))
-          .addWidget(activityMetric('Shortest activity', project.shortestActivity)));
+      builder.addSection(CardService.newCardSection().setHeader('Block lengths')
+          .addWidget(activityMetric('Longest block', project.longestActivity))
+          .addWidget(activityMetric('Shortest block', project.shortestActivity)));
     }
 
-    var days = CardService.newCardSection().setHeader('Daily breakdown');
+    var days = CardService.newCardSection().setHeader('Day by day');
     if (!project.days.length) {
       days.addWidget(CardService.newTextParagraph().setText(
-          'No qualifying events were found for this project in this period.'));
+          'Nothing scheduled for this project in this period.'));
     } else {
       project.days.forEach(function(day) {
         var count = day.eventCount + ' ' +
@@ -334,12 +340,12 @@ var TrackCards = (function() {
 
     var rules = CardService.newSelectionInput()
         .setFieldName('rules')
-        .setTitle('Counting rules')
+        .setTitle('What counts')
         .setType(CardService.SelectionInputType.CHECK_BOX)
         .addItem('Include weekends', 'includeWeekends', preferences.includeWeekends)
-        .addItem('Count declined events', 'countDeclined', preferences.countDeclined)
-        .addItem('Count all-day events', 'countAllDay', preferences.countAllDay)
-        .addItem('Count events marked Free', 'countFree', preferences.countFree);
+        .addItem('Include declined events', 'countDeclined', preferences.countDeclined)
+        .addItem('Include all-day events', 'countAllDay', preferences.countAllDay)
+        .addItem('Include events marked Free', 'countFree', preferences.countFree);
     builder.addSection(CardService.newCardSection()
         .addWidget(firstDay)
         .addWidget(rules));
@@ -361,7 +367,7 @@ var TrackCards = (function() {
             .addWidget(CardService.newTextParagraph().setText(
                 '<b>Delete all Track! data saved for your account?</b>'))
             .addWidget(CardService.newTextParagraph().setText(
-                'This removes calendar selections, counting preferences, view state, and tracked cached summaries. It does not modify or delete any Calendar events.'))
+                'This removes calendar selections, counting preferences, view state, and cached summaries. It does not modify or delete any Calendar events.'))
             .addWidget(CardService.newButtonSet()
                 .addButton(filledButton('Delete my data', 'onDeleteUserData'))
                 .addButton(textButton('Cancel', 'onCancelDeleteData'))))

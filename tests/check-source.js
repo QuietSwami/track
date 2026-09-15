@@ -38,8 +38,11 @@ assert.match(cards, /Project mix/,
   'Insights should provide an immediately scannable project comparison');
 assert.doesNotMatch(cards, /Charts\.newLineChart|data:image\/png;base64/,
   'Insights should not depend on a heavy generated chart');
-assert.match(cards, /Longest activity/);
-assert.match(cards, /Shortest activity/);
+assert.match(cards, /Longest block/);
+assert.match(cards, /Shortest block/);
+assert.match(cards, /Scheduled time/);
+assert.match(cards, /not time automatically tracked/);
+assert.doesNotMatch(cards, /Activity extremes|Counted events|Daily breakdown/);
 assert.match(cards, /Delete my data/,
   'Settings should provide an in-product user-data deletion flow');
 assert.match(calendarAccess, /items\(id,summary,status,start,end/,

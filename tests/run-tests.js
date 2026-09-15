@@ -201,8 +201,8 @@ test('an activity without a visible event name gets a helpful fallback', () => {
   const result = aggregate([{id: 'a', name: 'A', events: [
     timed('1', '2026-09-07T09:00:00Z', '2026-09-07T10:00:00Z')
   ]}], '2026-09-07T00:00:00Z', '2026-09-08T00:00:00Z');
-  assert.equal(result.projects[0].longestActivity.name, 'Untitled activity');
-  assert.equal(result.projects[0].shortestActivity.name, 'Untitled activity');
+  assert.equal(result.projects[0].longestActivity.name, 'Untitled event');
+  assert.equal(result.projects[0].shortestActivity.name, 'Untitled event');
 });
 
 test('empty period returns zero without overlap', () => {

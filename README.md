@@ -1,8 +1,8 @@
 # Track! - Time Tracker for Google Calendar
 
-Track! - Time Tracker for Google Calendar is an open-source, self-hosted Google Workspace add-on. It appears in Calendar's right-hand sidebar and totals scheduled event duration by calendar: one selected calendar equals one project.
+Track! adds up the time scheduled in the project calendars you choose: one selected calendar equals one project. It is a planning view—not a stopwatch, automatic activity tracker, or measure of productivity.
 
-*NOTE:* For the time being, each user must isntall the source into a Google Apps Script project on their own. There's no shared service, external server, or database. 
+*NOTE:* For the time being, each user must install the source into a Google Apps Script project on their own. There's no shared service, external server, or database.
 
 **Start here:** [Install Track! from source](INSTALL.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [MIT License](LICENSE)
 
@@ -31,7 +31,7 @@ CHANGELOG.md        Release history
 
 ## Insights
 
-The lightweight **Insights** card is designed for a quick weekly or monthly review. It compares the currently selected period with the immediately previous period and shows the total change, event rhythm, active projects, a compact project-allocation bar, and a few useful highlights such as the busiest day and largest project changes.
+The lightweight **Insights** card is designed for a quick weekly or monthly review. It compares the currently selected period with the immediately previous period and shows the total change, calendar-block rhythm, active projects, a compact project-allocation bar, and a few useful highlights such as the busiest day and largest project changes.
 
 It deliberately avoids a long historical dashboard and generated chart images. At most two bounded periods are needed, and both use the same three-minute user cache as the main summary.
 
@@ -60,11 +60,11 @@ The personal deployment requests exactly:
 
 ## Privacy and data handling
 
-Track! reads the accessible calendar list plus event names, start/end times, status, transparency, the current user's attendee response, and recurrence-instance identifiers for selected calendars. Event names are used only for the longest and shortest activity statistics. It does not request event descriptions, locations, or other content in its Calendar API partial-response fields.
+Track! reads the accessible calendar list plus event names, start/end times, status, transparency, the current user's attendee response, and recurrence-instance identifiers for selected calendars. Event names are used only for the longest and shortest calendar-block details. It does not request event descriptions, locations, or other content in its Calendar API partial-response fields.
 
-Preferences and view state are stored per user in Apps Script **User Properties**. Calculated summaries, including the two displayed activity names per project, are stored for three minutes in Apps Script **User Cache**. Data remains within Google Apps Script/Google Calendar and is not transmitted to external services. Development logging is limited to calendar IDs, queried boundaries, event counts, and errors; it does not log event names, descriptions, or attendees.
+Preferences and view state are stored per user in Apps Script **User Properties**. Calculated summaries, including the event names displayed for the longest and shortest blocks, are stored for three minutes in Apps Script **User Cache**. Data remains within Google Apps Script/Google Calendar and is not transmitted to external services. Development logging is limited to calendar IDs, queried boundaries, event counts, and errors; it does not log event names, descriptions, or attendees.
 
-Users can delete their Track! preferences, view state, and tracked cached summaries from **Settings → Delete my data**. The action uses a confirmation card and does not modify Calendar data.
+Users can delete their Track! preferences, view state, and cached summaries from **Settings → Delete my data**. The action uses a confirmation card and does not modify Calendar data.
 
 ## Troubleshooting
 
