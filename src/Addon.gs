@@ -29,6 +29,43 @@ function onOpenSettings(e) {
   }
 }
 
+function onOpenInsights(e) {
+  return renderInsights(e, false, true);
+}
+
+function onRefreshInsights(e) {
+  return renderInsights(e, true, false);
+}
+
+function onBackFromInsights(e) {
+  return navigationResponse(CardService.newNavigation().popCard());
+}
+
+function renderInsights(e, bypassCache, pushCard) {
+  try {
+    var preferences = TrackSettings.getPreferences();
+    var calendars = TrackCalendarAccess.listAccessibleCalendars();
+    var timeZone = TrackCalendarAccess.getReportingTimeZone(calendars);
+    var view = TrackSettings.getView(timeZone);
+    var insights = TrackCalendarAccess.getAnalytics(
+        preferences, view, bypassCache, {
+          calendars: calendars,
+          timeZone: timeZone
+        });
+    var card = TrackCards.buildInsightsCard(insights);
+    var navigation = CardService.newNavigation();
+    if (pushCard) navigation.pushCard(card);
+    else navigation.updateCard(card);
+    return navigationResponse(navigation);
+  } catch (error) {
+    var errorCard = TrackCards.buildErrorCard(error);
+    var errorNavigation = CardService.newNavigation();
+    if (pushCard) errorNavigation.pushCard(errorCard);
+    else errorNavigation.updateCard(errorCard);
+    return navigationResponse(errorNavigation);
+  }
+}
+
 function onOpenProjectDetails(e) {
   return renderProjectDetails(e, false, true);
 }

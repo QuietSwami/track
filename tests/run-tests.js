@@ -6,13 +6,14 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const context = vm.createContext({console, Date, Intl, JSON, Math, isFinite});
-for (const file of ['Utils.gs', 'DateRanges.gs', 'Aggregation.gs']) {
+for (const file of ['Utils.gs', 'DateRanges.gs', 'Aggregation.gs', 'Analytics.gs']) {
   const source = fs.readFileSync(path.join(__dirname, '..', 'src', file), 'utf8');
   vm.runInContext(source, context, {filename: file});
 }
 
 const Dates = context.TrackDateRanges;
 const Aggregate = context.TrackAggregation;
+const Analytics = context.TrackAnalytics;
 
 const HOUR = 60 * 60 * 1000;
 const TZ = 'Europe/Zurich';
@@ -275,6 +276,74 @@ test('an event spanning a weekend counts only weekday portions', () => {
   ]}], range.includedIntervals, DEFAULTS, TZ);
   assert.equal(result.totalMilliseconds, 2 * HOUR);
   assert.equal(result.projects[0].eventCount, 1);
+});
+
+function analyticsSummary(label, totalMilliseconds, projects) {
+  return {
+    range: {periodType: 'week', displayLabel: label},
+    projects,
+    totalMilliseconds,
+    selectedCount: projects.length,
+    hasOverlaps: false,
+    inaccessibleCount: 0,
+    failedCalendars: []
+  };
+}
+
+test('insights compare projects and surface the useful changes', () => {
+  const current = analyticsSummary('7–13 September', 8 * HOUR, [
+    {id: 'a', name: 'Alpha', color: '#111111', milliseconds: 6 * HOUR,
+      percentage: 75, eventCount: 3,
+      days: [{date: '2026-09-08', milliseconds: 5 * HOUR, eventCount: 2}]},
+    {id: 'b', name: 'Beta', color: '#222222', milliseconds: 2 * HOUR,
+      percentage: 25, eventCount: 1,
+      days: [{date: '2026-09-09', milliseconds: 2 * HOUR, eventCount: 1}]}
+  ]);
+  const previous = analyticsSummary('31 August–6 September', 8 * HOUR, [
+    {id: 'a', name: 'Alpha', color: '#111111', milliseconds: 4 * HOUR,
+      percentage: 50, eventCount: 2, days: []},
+    {id: 'b', name: 'Beta', color: '#222222', milliseconds: 4 * HOUR,
+      percentage: 50, eventCount: 2, days: []}
+  ]);
+  const result = Analytics.compare(current, previous);
+  assert.equal(result.totalChange.kind, 'same');
+  assert.equal(result.projects[0].name, 'Alpha');
+  assert.equal(result.projects[0].change.percent, 50);
+  assert.equal(result.biggestIncrease.name, 'Alpha');
+  assert.equal(result.biggestDecrease.name, 'Beta');
+  assert.equal(result.busiestDay.date, '2026-09-08');
+  assert.equal(result.eventCount, 4);
+  assert.equal(result.averageEventMilliseconds, 2 * HOUR);
+});
+
+test('insights identify new activity without dividing by zero', () => {
+  const current = analyticsSummary('Current', 2 * HOUR, [
+    {id: 'a', name: 'Alpha', color: '#111111', milliseconds: 2 * HOUR,
+      percentage: 100, eventCount: 1, days: []}
+  ]);
+  const previous = analyticsSummary('Previous', 0, [
+    {id: 'a', name: 'Alpha', color: '#111111', milliseconds: 0,
+      percentage: 0, eventCount: 0, days: []}
+  ]);
+  const result = Analytics.compare(current, previous);
+  assert.equal(result.totalChange.kind, 'new');
+  assert.equal(result.totalChange.percent, null);
+  assert.equal(result.projects[0].change.kind, 'new');
+});
+
+test('insights keep an empty comparison compact', () => {
+  const current = analyticsSummary('Current', 0, [
+    {id: 'a', name: 'Alpha', color: '#111111', milliseconds: 0,
+      percentage: 0, eventCount: 0, days: []}
+  ]);
+  const previous = analyticsSummary('Previous', 0, [
+    {id: 'a', name: 'Alpha', color: '#111111', milliseconds: 0,
+      percentage: 0, eventCount: 0, days: []}
+  ]);
+  const result = Analytics.compare(current, previous);
+  assert.equal(result.projects.length, 0);
+  assert.equal(result.busiestDay, null);
+  assert.equal(result.averageEventMilliseconds, 0);
 });
 
 let failures = 0;

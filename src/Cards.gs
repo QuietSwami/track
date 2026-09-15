@@ -84,8 +84,133 @@ var TrackCards = (function() {
     builder.addSection(CardService.newCardSection().addWidget(
         CardService.newButtonSet()
             .addButton(textButton('Refresh', 'onRefresh'))
+            .addButton(textButton('Insights', 'onOpenInsights'))
             .addButton(textButton('Settings', 'onOpenSettings'))));
     return builder.build();
+  }
+
+  function buildInsightsCard(insights) {
+    var builder = baseBuilder('Insights');
+    var unit = insights.unitLabel;
+    builder.addSection(CardService.newCardSection()
+        .addWidget(CardService.newTextParagraph().setText(
+            '<b>Selected ' + unit + '</b> · ' +
+            TrackUtils.escapeHtml(insights.currentRange.displayLabel) + '<br>' +
+            'Compared with ' +
+            TrackUtils.escapeHtml(insights.previousRange.displayLabel))));
+
+    var snapshot = CardService.newCardSection().setHeader('At a glance')
+        .addWidget(metric('Scheduled',
+            TrackUtils.formatDuration(insights.currentTotalMilliseconds)))
+        .addWidget(metric('Change vs previous ' + unit,
+            formatChange(insights.totalChange)))
+        .addWidget(metric('Activity', insights.eventCount + ' ' +
+            (insights.eventCount === 1 ? 'event' : 'events') + ' · ' +
+            insights.activeProjectCount + ' active ' +
+            (insights.activeProjectCount === 1 ? 'project' : 'projects')));
+    if (insights.eventCount) {
+      snapshot.addWidget(metric('Average scheduled block',
+          TrackUtils.formatDuration(insights.averageEventMilliseconds)));
+    }
+    builder.addSection(snapshot);
+
+    var mix = CardService.newCardSection().setHeader('Project mix');
+    if (!insights.selectedCount) {
+      mix.addWidget(CardService.newTextParagraph().setText(
+          'No project calendars are selected. Open Settings to choose them.'));
+    } else if (!insights.projects.length) {
+      mix.addWidget(CardService.newTextParagraph().setText(
+          'No qualifying events were found in this or the previous ' + unit + '.'));
+    } else {
+      insights.projects.forEach(function(project) {
+        mix.addWidget(CardService.newDecoratedText()
+            .setWrapText(true)
+            .setOnClickAction(action('onOpenProjectDetails', {
+              calendarId: project.id
+            }))
+            .setText(
+                '<font color="' + TrackUtils.safeColor(project.color) + '">●</font> ' +
+                '<b>' + TrackUtils.escapeHtml(project.name) + '</b>  ›<br>' +
+                projectShareBar(project.percentage, project.color) + '  ' +
+                TrackUtils.escapeHtml(
+                    TrackUtils.formatDuration(project.currentMilliseconds)) +
+                ' · ' + project.percentage + '%<br>' +
+                '<i>' + TrackUtils.escapeHtml(formatChange(project.change)) +
+                ' vs previous ' + unit + '</i>'));
+      });
+    }
+    builder.addSection(mix);
+
+    if (insights.topProject || insights.busiestDay ||
+        insights.biggestIncrease || insights.biggestDecrease) {
+      var highlights = CardService.newCardSection().setHeader('Highlights');
+      if (insights.topProject) {
+        highlights.addWidget(metric('Most scheduled project',
+            insights.topProject.name + ' · ' +
+            TrackUtils.formatDuration(insights.topProject.currentMilliseconds) +
+            ' · ' + insights.topProject.percentage + '%'));
+      }
+      if (insights.busiestDay) {
+        highlights.addWidget(metric('Busiest day',
+            TrackDateRanges.formatDayLabel(insights.busiestDay.date) + ' · ' +
+            TrackUtils.formatDuration(insights.busiestDay.milliseconds)));
+      }
+      if (insights.biggestIncrease) {
+        highlights.addWidget(metric('Largest increase',
+            insights.biggestIncrease.name + ' · ' +
+            formatSignedDuration(insights.biggestIncrease.deltaMilliseconds)));
+      }
+      if (insights.biggestDecrease) {
+        highlights.addWidget(metric('Largest decrease',
+            insights.biggestDecrease.name + ' · ' +
+            formatSignedDuration(insights.biggestDecrease.deltaMilliseconds)));
+      }
+      builder.addSection(highlights);
+    }
+
+    if (insights.hasOverlaps || insights.comparisonIncomplete) {
+      var notes = [];
+      if (insights.hasOverlaps) notes.push('Overlapping events are counted separately.');
+      if (insights.comparisonIncomplete) {
+        notes.push('The comparison may be incomplete because one or more calendars could not be read.');
+      }
+      builder.addSection(CardService.newCardSection().setHeader('Note')
+          .addWidget(CardService.newTextParagraph().setText(notes.join('<br>'))));
+    }
+
+    builder.addSection(CardService.newCardSection().addWidget(
+        CardService.newButtonSet()
+            .addButton(textButton('Back', 'onBackFromInsights'))
+            .addButton(textButton('Refresh', 'onRefreshInsights'))));
+    return builder.build();
+  }
+
+  function projectShareBar(percentage, color) {
+    var filled = percentage > 0 ? Math.max(1, Math.round(percentage / 10)) : 0;
+    filled = Math.min(10, filled);
+    return '<font color="' + TrackUtils.safeColor(color) + '">' +
+        repeat('■', filled) + '</font>' + repeat('·', 10 - filled);
+  }
+
+  function repeat(value, count) {
+    return new Array(count + 1).join(value);
+  }
+
+  function formatChange(change) {
+    if (!change || change.kind === 'same') return 'No change';
+    if (change.kind === 'new') return 'New activity';
+    var result = formatSignedDuration(change.deltaMilliseconds);
+    if (change.percent != null) {
+      result += ' (' + (change.percent > 0 ? '+' : '−') +
+          Math.abs(change.percent) + '%)';
+    }
+    return result;
+  }
+
+  function formatSignedDuration(milliseconds) {
+    if (!milliseconds) return 'No change';
+    return (milliseconds > 0 ? '+' : '−') +
+        TrackUtils.formatDuration(Math.abs(milliseconds));
   }
 
   function buildProjectDetailsCard(summary, project) {
@@ -285,6 +410,7 @@ var TrackCards = (function() {
   return {
     buildDeleteDataCard: buildDeleteDataCard,
     buildErrorCard: buildErrorCard,
+    buildInsightsCard: buildInsightsCard,
     buildMainCard: buildMainCard,
     buildProjectDetailsCard: buildProjectDetailsCard,
     buildSettingsCard: buildSettingsCard

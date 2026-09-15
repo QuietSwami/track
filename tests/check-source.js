@@ -32,6 +32,12 @@ assert.match(cards, /setOnClickAction\(action\('onOpenProjectDetails'/,
   'Project summary rows should open the detail card');
 assert.match(cards, /buildProjectDetailsCard/,
   'Project detail card should be present');
+assert.match(cards, /buildInsightsCard/,
+  'A lightweight Insights card should be present');
+assert.match(cards, /Project mix/,
+  'Insights should provide an immediately scannable project comparison');
+assert.doesNotMatch(cards, /Charts\.newLineChart|data:image\/png;base64/,
+  'Insights should not depend on a heavy generated chart');
 assert.match(cards, /Longest activity/);
 assert.match(cards, /Shortest activity/);
 assert.match(cards, /Delete my data/,
@@ -40,4 +46,6 @@ assert.match(calendarAccess, /items\(id,summary,status,start,end/,
   'Event names should be requested for activity statistics');
 assert.doesNotMatch(calendarAccess, /items\(id,[^']*(description|location)/,
   'Descriptions and locations should not be requested');
+assert.match(calendarAccess, /getAnalytics/,
+  'Calendar access should compare only the selected and previous periods');
 console.log(`Checked ${scripts.length} Apps Script files and the manifest.`);

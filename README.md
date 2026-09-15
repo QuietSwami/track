@@ -15,6 +15,7 @@ src/
   Cards.gs          Card Service UI
   CalendarAccess.gs Calendar API reads and caching
   Aggregation.gs    Pure event filtering, clipping, totals, overlaps
+  Analytics.gs      Pure current-versus-previous insights
   DateRanges.gs     Pure week/month and timezone calculations
   Settings.gs       User Properties persistence
   Utils.gs          Formatting and form helpers
@@ -27,6 +28,12 @@ CONTRIBUTING.md     Development and privacy constraints
 SECURITY.md         Private vulnerability-reporting process
 CHANGELOG.md        Release history
 ```
+
+## Insights
+
+The lightweight **Insights** card is designed for a quick weekly or monthly review. It compares the currently selected period with the immediately previous period and shows the total change, event rhythm, active projects, a compact project-allocation bar, and a few useful highlights such as the busiest day and largest project changes.
+
+It deliberately avoids a long historical dashboard and generated chart images. At most two bounded periods are needed, and both use the same three-minute user cache as the main summary.
 
 ## Local verification
 

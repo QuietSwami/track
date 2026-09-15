@@ -2,6 +2,12 @@
 
 All notable changes to Track! - Time Tracker for Google Calendar are documented here.
 
+## Unreleased
+
+- Added a lightweight Insights card comparing the selected week or month with the previous period.
+- Added scannable project-allocation bars, neutral period-over-period changes, activity rhythm, and focused highlights.
+- Kept analytics to two bounded periods and removed generated historical chart images.
+
 ## 1.1.0 — 2026-09-14
 
 - Renamed Project Time to Track! - Time Tracker for Google Calendar.

@@ -5,6 +5,7 @@
     "Utils.gs",
     "DateRanges.gs",
     "Aggregation.gs",
+    "Analytics.gs",
     "Settings.gs",
     "CalendarAccess.gs",
     "Cards.gs",
@@ -12,4 +13,3 @@
     "appsscript.json"
   ]
 }
-

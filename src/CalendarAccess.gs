@@ -126,6 +126,18 @@ var TrackCalendarAccess = (function() {
     return result;
   }
 
+  function getAnalytics(preferences, view, bypassCache, calendarContext) {
+    var current = getSummary(preferences, view, bypassCache, calendarContext);
+    var previousView = {
+      periodType: view.periodType,
+      anchorDate: TrackDateRanges.navigate(
+          view.periodType, view.anchorDate, -1)
+    };
+    var previous = getSummary(
+        preferences, previousView, bypassCache, calendarContext);
+    return TrackAnalytics.compare(current, previous);
+  }
+
   function createCacheKey(preferences, range, calendars, timeZone) {
     var material = JSON.stringify({
       version: CACHE_VERSION,
@@ -157,6 +169,7 @@ var TrackCalendarAccess = (function() {
   return {
     clearCachedSummaries: clearCachedSummaries,
     fetchCalendarEvents: fetchCalendarEvents,
+    getAnalytics: getAnalytics,
     getReportingTimeZone: getReportingTimeZone,
     getSummary: getSummary,
     listAccessibleCalendars: listAccessibleCalendars
